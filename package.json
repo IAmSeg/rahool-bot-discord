@@ -1,0 +1,12 @@
+{
+  "name": "rahool-bot",
+  "version": "1.0.0",
+  "author": "Will Johnson",
+  "description": "Discord bot for Rahool the Cryptarch",
+  "dependencies": {
+    "discord.io": "^2.5.2",
+    "firebase": "^4.3.0",
+    "import-export": "^1.0.1",
+    "winston": "^2.3.1"
+  }
+}

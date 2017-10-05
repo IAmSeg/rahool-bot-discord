@@ -1,0 +1,5 @@
+node_modules
+github-key.txt
+firebaseConfig.js
+auth.json
+package-lock.json
