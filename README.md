@@ -19,6 +19,12 @@ if you'd like to run it yourself with your own API keys.
 * Users can gamble glimmer
 * Users can check the light level of all users within the server to see who has highest light
 
+### Setup
+
+To get up and running, you need your own Discord auth token for your bot. [Use this guide](https://medium.com/@renesansz/tutorial-creating-a-simple-discord-bot-9465a2764dc0) to get started with your own bot. After that you'll need to setup your own firebase db and get your firebase config. [Go here for firebase setup.](https://firebase.google.com/docs/web/setup?authuser=0) 
+
+To use the current !buyengram functionality you'll need an armory of destiny items setup in a firebase db. You can do this however you want, but I use a python script to fetch the destiny manifest from the bungie API and populate the db with that. You'll need your own bungie API key for that. [Go here to setup your bungie developer account](http://destinydevs.github.io/BungieNetPlatform/docs/API-Key). 
+
 
 ### Contributing
 
