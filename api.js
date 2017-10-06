@@ -95,25 +95,34 @@ const api = {
       const secret = Math.floor(utilities.randomNumberBetween(1, 100));
       const userRef = this.database.ref(`users/${userId}`);
       const bankRef = this.database.ref(`glimmerBank`);
-      // successful bank rob
-      if (guess === secret) {
-        let amount = 0;
-        bot.sendMessage({
-          to: channelId,
-          message: `Congratulations <@${userId}>! You guessed the secret number and successfully robbed the global glimmer bank of **${amount}**`
-        });
+      userRef.once('value', snapshot => {
+        let userGlimmer = snapshot.val().glimmer; 
+        if (userGlimmer < -100) {
+          bot.sendMessage({
+            to: channelId,
+            message: `Sorry <@${userId}>, you don't have enough glimmer to attempt a bank robbery.`
+          });
+          return;
+        }
 
-        bankRef.once('value', snapshot => {
-          amount = snapshot.val().amount;
-          bankRef.update({ amount: 0 });
-        });
+        // successful bank rob
+        if (guess === secret) {
+          let amount = 0;
+          bot.sendMessage({
+            to: channelId,
+            message: `Congratulations <@${userId}>! You guessed the secret number and successfully robbed the global glimmer bank of **${amount}**`
+          });
 
-        userRef.once('value', snapshot => {
-          userRef.update({ glimmer: snapshot.val().glimmer + amount });
-        });
-      }
-      else {
-        userRef.once('value', snapshot => {
+          bankRef.once('value', snapshot => {
+            amount = snapshot.val().amount;
+            bankRef.update({ amount: 0 });
+          });
+
+          userRef.once('value', snapshot => {
+            userRef.update({ glimmer: snapshot.val().glimmer + amount });
+          });
+        }
+        else {
           // fine of 20%
           let fineAmount = Math.abs(Math.floor(snapshot.val().glimmer * 0.2));
           // fine them at least 5, 20 if they don't even have that much glimmer
@@ -126,9 +135,9 @@ const api = {
           bot.sendMessage({
             to: channelId,
             message: `Sorry <@${userId}>, you guessed incorrectly. The secret number was **${secret}**. You've been fined **${fineAmount}** glimmer by the glimmer police.`
-          })
-        })
-      }
+          });
+        }
+      });
     }
     catch (e) {
       logger.error(`Error in robBank: ${e}`);
