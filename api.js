@@ -145,9 +145,10 @@ const api = {
   },
 
   // @summary gets current loadout for user. this includes their specific item names and light levels
+  // @param userId - calling user
   // @param bot - this bot, duh
   // @channelId - id of the channel to write to
-  getLoadout(bot, channelId) {
+  getLoadout(userId, bot, channelId) {
     try {
       const ref = this.database.ref(`users/${userId}`);
       ref.once('value', snapshot => {
