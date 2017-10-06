@@ -110,7 +110,7 @@ const api = {
           let amount = 0;
           bot.sendMessage({
             to: channelId,
-            message: `Congratulations <@${userId}>! You guessed the secret number and successfully robbed the global glimmer bank of **${amount}**`
+            message: `Congratulations <@${userId}>! You guessed the secret number and successfully robbed the global glimmer bank of **${amount}** glimmer!`
           });
 
           bankRef.once('value', snapshot => {
