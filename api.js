@@ -135,6 +135,15 @@ const api = {
         return;
       }
 
+      if (amount < 0) {
+        bot.sendMessage({
+          to: channelId,
+          message: `<@${userId}> how you gonna gamble a negative amount? Get outta here.`
+        });
+
+        return;
+      }
+
       const roll = Math.floor(utilities.randomNumberBetween(1, 100));
       let doubleLossChance = 7;
       let lossChance = 36;
