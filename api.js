@@ -44,7 +44,8 @@ const api = {
           energyName: 'unknown',
           powerLight: 0,
           powerName: 'unknown'
-        }
+        },
+        oweTo: {}
       });
     }
     catch (e) {
@@ -52,102 +53,11 @@ const api = {
     }
   },
 
-  /// @summary - adds an amount of glimmer to the global glimmer bank
-  /// @param amount - amount to add
-  addAmountToBank(amount) {
-    try {
-      const ref = this.database.ref(`glimmerBank`);
-      ref.once('value', snapshot => {
-        snapshot.ref.update({ amount: snapshot.val().amount + amount });
-      });
-    }
-    catch (e) {
-      logger.error(`Error in addAmountToBank: ${e}`);
-    }
-  },
-
-  // @summary gets current mount of glimmer in global bank
-  // @param userId - calling user
-  // @param bot - this bot, duh
-  // @channelId - id of the channel to write to
-  getBankAmount(bot, channelId) {
-    try {
-      const ref = this.database.ref(`glimmerBank`);
-      ref.once('value', snapshot => {
-        bot.sendMessage({
-          to: channelId,
-          message: `Current global glimmer bank amount: **${snapshot.val().amount}** glimmer.`
-        })
-      });
-    }
-    catch (e) {
-      logger.error(`Error in getBankAmount: ${e}`);
-    }
-  },
-
-  // @summary gets current mount of glimmer in global bank
-  // @param userId - calling user
-  // @param guess- the users guess for the secret number
-  // @param bot - this bot, duh
-  // @channelId - id of the channel to write to
-  robBank(userId, guess, bot, channelId) {
-    try {
-      const secret = Math.floor(utilities.randomNumberBetween(1, 100));
-      const userRef = this.database.ref(`users/${userId}`);
-      const bankRef = this.database.ref(`glimmerBank`);
-      userRef.once('value', snapshot => {
-        let userGlimmer = snapshot.val().glimmer; 
-        if (userGlimmer < -100) {
-          bot.sendMessage({
-            to: channelId,
-            message: `Sorry <@${userId}>, you don't have enough glimmer to attempt a bank robbery.`
-          });
-          return;
-        }
-
-        // successful bank rob
-        if (guess === secret) {
-          let amount = 0;
-          bot.sendMessage({
-            to: channelId,
-            message: `Congratulations <@${userId}>! You guessed the secret number and successfully robbed the global glimmer bank of **${amount}**`
-          });
-
-          bankRef.once('value', snapshot => {
-            amount = snapshot.val().amount;
-            bankRef.update({ amount: 0 });
-          });
-
-          userRef.once('value', snapshot => {
-            userRef.update({ glimmer: snapshot.val().glimmer + amount });
-          });
-        }
-        else {
-          // fine of 20%
-          let fineAmount = Math.abs(Math.floor(snapshot.val().glimmer * 0.2));
-          // fine them at least 5, 20 if they don't even have that much glimmer
-          fineAmount = fineAmount < 5 ? 20 : fineAmount;
-          bankRef.once('value', snapshot => {
-            amount = snapshot.val().amount;
-            bankRef.update({ amount: amount + Math.abs(fineAmount) });
-          });
-          userRef.update({ glimmer: snapshot.val().glimmer - Math.abs(fineAmount) });
-          bot.sendMessage({
-            to: channelId,
-            message: `Sorry <@${userId}>, you guessed incorrectly. The secret number was **${secret}**. You've been fined **${fineAmount}** glimmer by the glimmer police.`
-          });
-        }
-      });
-    }
-    catch (e) {
-      logger.error(`Error in robBank: ${e}`);
-    }
-  },
-
   // @summary gets current loadout for user. this includes their specific item names and light levels
+  // @param userId - calling user
   // @param bot - this bot, duh
   // @channelId - id of the channel to write to
-  getLoadout(bot, channelId) {
+  getLoadout(userId, bot, channelId) {
     try {
       const ref = this.database.ref(`users/${userId}`);
       ref.once('value', snapshot => {
@@ -226,15 +136,6 @@ const api = {
         return;
       }
 
-      if (amount < 0) {
-        bot.sendMessage({
-          to: channelId,
-          message: `<@${userId}> how you gonna gamble a negative amount? Get outta here.`
-        });
-
-        return;
-      }
-
       const roll = Math.floor(utilities.randomNumberBetween(1, 100));
       let doubleLossChance = 7;
       let lossChance = 36;
@@ -247,12 +148,10 @@ const api = {
       let message = ``;
       if (roll <= 7) {
         newAmount = 0 - amount - amount;
-        this.addAmountToBank(Math.abs(newAmount));
         message = `rolled a ${roll} (${doubleLossChance}% chance). You have a problem and lost twice your gamble, ${amount * 2} glimmer.`
       }
       else if (roll > 7 && roll <= 43) {
         newAmount = 0 - amount;
-        this.addAmountToBank(Math.abs(newAmount));
         message = `rolled a ${roll} (${lossChance}% chance). You lost your gamble and lost ${amount} glimmer..`
       }
       else if (roll > 43 && roll <= 66) {
@@ -286,7 +185,7 @@ const api = {
             to: channelId,
             message: `<@${userId}> ${message}`
           });
-          let glimmer = (Number(snapshot.val().glimmer) + Number(newAmount));
+          let glimmer = (Number(snapshot.val().glimmer) + Number(newAmount)) < 0 ? 0 : Number(snapshot.val().glimmer) + Number(newAmount);
           snapshot.ref.update({ glimmer });
         }
       });
@@ -296,14 +195,141 @@ const api = {
     }
   },
 
+  // @summary loans glimmer from one user to another
+  // @param userId - calling user
+  // @param amount - the amount the user chose to loan
+  // @param loanTo - the user to loan amount to
+  // @param bot - this bot, duh
+  // @channelId - id of the channel to write to
+  loan(userId, amount, loanTo, bot, channelId) {
+    try {
+      let message = ``;
+
+      if (isNaN(amount)) {
+        bot.sendMessage({
+          to: channelId,
+          message: `<@${userId}> ${amount} isn't a number, dumbass.`
+        });
+
+        return;
+      } else if (amount < 0) {
+        bot.sendMessage({
+          to: channelId,
+          message: `<@${userId}> Nice try dipshit`
+        });
+
+        return;
+      }
+
+      const user = this.database.ref(`users/${userId}`);
+      const userLoanTo = this.database.ref(`users/${loanTo}`);
+      user.once('value', snapshot => {
+        if (snapshot.val()) {
+          if (snapshot.val().glimmer < amount) {
+            bot.sendMessage({
+              to: channelId,
+              message: `<@${userId}> you don't have that much glimmer to loan dickface.`
+            });
+            return;
+          }
+          bot.sendMessage({
+            to: channelId,
+            message: `<@${userId}> Good financial decision`
+          });
+          let glimmer = Number(snapshot.val().glimmer) - Number(amount);
+          snapshot.ref.update({ glimmer });
+        }
+      });
+
+      userLoanTo.once('value', snapshot => {
+        if (snapshot.val()) {
+          bot.sendMessage({
+            to: channelId,
+            message: `<@${loanTo}> You just got ${amount} glimmer! Good luck...`
+          });
+
+          if (!(isNaN(snapshot.val().oweTo.userId))) {
+            let owed = Number(snapshot.val().oweTo.userId) + Number(amount);
+            let oweTo = {userId: Number(owed)};
+            console.log(owed);
+            snapshot.ref.update({ oweTo });
+          }
+          else {
+            let oweTo = {};
+            oweTo[userId] = Number(amount);
+            console.log(Number(amount));
+            snapshot.ref.update({ oweTo });
+          }
+
+          let glimmer = Number(snapshot.val().glimmer) + Number(amount);
+          snapshot.ref.update({ glimmer });
+        }
+      });
+    }
+    catch (e) {
+      logger.error(`Error in loanGlimmer for ${userId} and amount ${amount}: ${e}`);
+    }
+  },
+
+  // @summary collects glimmer from a user
+  // @param userId - calling user
+  // @param collectFrom - the user to collect from
+  // @param bot - this bot, duh
+  // @channelId - id of the channel to write to
+  collect(userId, collectFrom, bot, channelId) {
+    try {
+      let paid = 0;
+
+      const user = this.database.ref(`users/${userId}`);
+      const userCollectFrom = this.database.ref(`users/${collectFrom}`);
+      userCollectFrom.once('value', snapshot => {
+        if (snapshot.val()) {
+          if (isNaN(snapshot.val().oweTo.userId)) {
+            bot.sendMessage({
+              to: channelId,
+              message: `<@${userId}> Nope`
+            });
+          }
+          else {
+            let owed = Number(snapshot.val().oweTo.userId);
+            let glimmer = (snapshot.val().glimmer > owed) ? (snapshot.val().glimmer - Math.floor(owed)) : 0;
+            paid = (snapshot.val().glimmer - glimmer);
+
+            console.log(owed);
+            console.log(paid);
+
+            snapshot.ref.update({ glimmer });
+
+            let oweTo = {};
+            oweTo[userId] =  Number((owed-paid) > 0 ? (owed - paid) : 0);
+            snapshot.ref.update({ oweTo });
+          }
+        }
+      });
+
+      user.once('value', snapshot => {
+        if (snapshot.val()) {
+          bot.sendMessage({
+            to: channelId,
+            message: `<@${userId}> You have collected`
+          });
+          let glimmer = Number(snapshot.val().glimmer) + Number(paid);
+          snapshot.ref.update({ glimmer });
+        }
+      });
+    }
+    catch (e) {
+      logger.error(`Error in loanGlimmer for ${userId} and amount ${amount}: ${e}`);
+    }
+  },
+
+
   // @summary updates glimmer for a particular user when they type
   // +5 glimmer for each message
   // @param userId - calling user
   // @username - human friendly username of the user
   updateGlimmer(userId, username) {
     try {
-      // add 5 to the bank
-      this.addAmountToBank(5);
       const user = this.database.ref(`users/${userId}`);
       user.once('value', snapshot => {
         if (snapshot.val())

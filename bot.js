@@ -40,6 +40,21 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       api.gambleGlimmer(userId, amount, bot, channelId);
     }
 
+    //loan
+    if (message.split(' ')[0] === '!loan') {
+      let amount = message.split(' ')[1];
+      let loanTo = message.split(' ')[2];
+      let loanToId = loanTo.substring(3, loanTo.length - 1);
+      api.loan(userId, amount, loanToId, bot, channelId);
+    }
+
+    //collect loan
+    if (message.split(' ')[0] === '!collect') {
+      let collectFrom = message.split(' ')[1];
+      let collectFromId = collectFrom.substring(3, collectFrom.length - 1);
+      api.collect(userId, collectFromId, bot, channelId);
+    }
+
     // get current glimmer for a user
     if (message === '!glimmer')
       api.getCurrentGlimmer(userId, bot, channelId);
@@ -69,26 +84,6 @@ bot.on('message', function (user, userId, channelId, message, evt) {
          message
       });
     }
-
-    if (message === '!bankamount')
-      api.getBankAmount(bot, channelId);
-
-    if (message === '!howtorobbank') {
-      let message =`The global glimmer bank is protected by a secret number that is randomized between 1 and 100 constantly. `;
-      message += `You can attempt to rob the glimmer bank by guessing the secret number. If you guess it correctly, you will open the vault and escape with all the glimmer. `;
-      message += `If you guess wrong and are caught by the glimmer police, you will be fined. Type **!robbank guess** to attempt.`;
-       bot.sendMessage({
-         to: channelId,
-         message
-      });
-    }
-
-    // try to rob the bank
-    if (message.split(' ')[0] === '!robbank') {
-      let guess = message.split(' ')[1];
-      api.robBank(userId, guess, bot, channelId);
-    }
-
 
     if (message === '!gambleodds') {
       // 17% chance of winning your gamble, 
