@@ -184,7 +184,7 @@ const api = {
             to: channelId,
             message: `<@${userId}> ${message}`
           });
-          let glimmer = (Number(snapshot.val().glimmer) + Number(newAmount)) < 0 ? 0 : Number(snapshot.val().glimmer) + Number(newAmount);
+          let glimmer = (Number(snapshot.val().glimmer) + Number(newAmount));
           snapshot.ref.update({ glimmer });
         }
       });
