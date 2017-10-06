@@ -52,11 +52,91 @@ const api = {
     }
   },
 
-  // @summary gets current loadout for user. this includes their specific item names and light levels
+  /// @summary - adds an amount of glimmer to the global glimmer bank
+  /// @param amount - amount to add
+  addAmountToBank(amount) {
+    try {
+      const ref = this.database.ref(`glimmerBank`);
+      ref.once('value', snapshot => {
+        snapshot.ref.update({ amount: snapshot.val().amount + amount });
+      });
+    }
+    catch (e) {
+      logger.error(`Error in addAmountToBank: ${e}`);
+    }
+  },
+
+  // @summary gets current mount of glimmer in global bank
   // @param userId - calling user
   // @param bot - this bot, duh
   // @channelId - id of the channel to write to
-  getLoadout(userId, bot, channelId) {
+  getBankAmount(bot, channelId) {
+    try {
+      const ref = this.database.ref(`glimmerBank`);
+      ref.once('value', snapshot => {
+        bot.sendMessage({
+          to: channelId,
+          message: `Current global glimmer bank amount: **${snapshot.val().amount}** glimmer.`
+        })
+      });
+    }
+    catch (e) {
+      logger.error(`Error in getBankAmount: ${e}`);
+    }
+  },
+
+  // @summary gets current mount of glimmer in global bank
+  // @param userId - calling user
+  // @param guess- the users guess for the secret number
+  // @param bot - this bot, duh
+  // @channelId - id of the channel to write to
+  robBank(userId, guess, bot, channelId) {
+    try {
+      const secret = Math.floor(utilities.randomNumberBetween(1, 100));
+      const userRef = this.database.ref(`users/${userId}`);
+      const bankRef = this.database.ref(`glimmerBank`);
+      // successful bank rob
+      if (guess === secret) {
+        let amount = 0;
+        bot.sendMessage({
+          to: channelId,
+          message: `Congratulations <@${userId}>! You guessed the secret number and successfully robbed the global glimmer bank of **${amount}**`
+        });
+
+        bankRef.once('value', snapshot => {
+          amount = snapshot.val().amount;
+          bankRef.update({ amount: 0 });
+        });
+
+        userRef.once('value', snapshot => {
+          userRef.update({ glimmer: snapshot.val().glimmer + amount });
+        });
+      }
+      else {
+        userRef.once('value', snapshot => {
+          // fine of 20%
+          let fineAmount = Math.floor(snapshot.val().glimmer * 0.2);
+          bankRef.once('value', snapshot => {
+            amount = snapshot.val().amount;
+            bankRef.update({ amount: amount + fineAmount });
+          });
+          userRef.update({ glimmer: snapshot.val().glimmer - fineAmount });
+          bot.sendMessage({
+            to: channelId,
+            message: `Sorry <@${userId}>, you guessed incorrectly. The secret number was **${secret}**. You've been fined **${fineAmount}** glimmer by the glimmer police.`
+          })
+        })
+      }
+    }
+    catch (e) {
+      logger.error(`Error in robBank: ${e}`);
+    }
+  },
+
+  // @summary gets current loadout for user. this includes their specific item names and light levels
+  // @param bot - this bot, duh
+  // @channelId - id of the channel to write to
+  getLoadout(bot, channelId) {
     try {
       const ref = this.database.ref(`users/${userId}`);
       ref.once('value', snapshot => {
@@ -156,10 +236,12 @@ const api = {
       let message = ``;
       if (roll <= 7) {
         newAmount = 0 - amount - amount;
+        this.addAmountToBank(Math.abs(newAmount));
         message = `rolled a ${roll} (${doubleLossChance}% chance). You have a problem and lost twice your gamble, ${amount * 2} glimmer.`
       }
       else if (roll > 7 && roll <= 43) {
         newAmount = 0 - amount;
+        this.addAmountToBank(Math.abs(newAmount));
         message = `rolled a ${roll} (${lossChance}% chance). You lost your gamble and lost ${amount} glimmer..`
       }
       else if (roll > 43 && roll <= 66) {
@@ -209,6 +291,8 @@ const api = {
   // @username - human friendly username of the user
   updateGlimmer(userId, username) {
     try {
+      // add 5 to the bank
+      this.addAmountToBank(5);
       const user = this.database.ref(`users/${userId}`);
       user.once('value', snapshot => {
         if (snapshot.val())

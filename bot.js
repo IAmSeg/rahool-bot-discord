@@ -70,6 +70,26 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       });
     }
 
+    if (message === '!bankamount')
+      api.getBankAmount(bot, channelId);
+
+    if (message === '!howtorobbank') {
+      let message =`The global glimmer bank is protected by a secret number that is randomized between 1 and 100 constantly. `;
+      message += `You can attempt to rob the glimmer bank by guessing the secret number. If you guess it correctly, you will open the vault and escape with all the glimmer. `;
+      message += `If you guess wrong and are caught by the glimmer police, you will be fined. Type **!robbank guess** to attempt.`;
+       bot.sendMessage({
+         to: channelId,
+         message
+      });
+    }
+
+    // try to rob the bank
+    if (message.split(' ')[0] === '!robbank') {
+      let guess = message.split(' ')[1];
+      api.robBank(userId, guess, bot, channelId);
+    }
+
+
     if (message === '!gambleodds') {
       // 17% chance of winning your gamble, 
       // 12% chance of doubling your wager, 
