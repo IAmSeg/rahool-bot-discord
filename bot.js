@@ -30,6 +30,7 @@ bot.on('message', function (user, userId, channelId, message, evt) {
     if (userId == bot.id)
       return;
 
+    console.log(`message from ${userId}: ${message}`);
     // add 5 glimmer to user per message
     if (message[0] !== '!' && message.length >= 10)
       api.updateGlimmer(userId, user);

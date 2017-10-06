@@ -115,12 +115,14 @@ const api = {
       else {
         userRef.once('value', snapshot => {
           // fine of 20%
-          let fineAmount = Math.floor(snapshot.val().glimmer * 0.2);
+          let fineAmount = Math.abs(Math.floor(snapshot.val().glimmer * 0.2));
+          // fine them at least 5, 20 if they don't even have that much glimmer
+          fineAmount = fineAmount < 5 ? 20 : fineAmount;
           bankRef.once('value', snapshot => {
             amount = snapshot.val().amount;
-            bankRef.update({ amount: amount + fineAmount });
+            bankRef.update({ amount: amount + Math.abs(fineAmount) });
           });
-          userRef.update({ glimmer: snapshot.val().glimmer - fineAmount });
+          userRef.update({ glimmer: snapshot.val().glimmer - Math.abs(fineAmount) });
           bot.sendMessage({
             to: channelId,
             message: `Sorry <@${userId}>, you guessed incorrectly. The secret number was **${secret}**. You've been fined **${fineAmount}** glimmer by the glimmer police.`
