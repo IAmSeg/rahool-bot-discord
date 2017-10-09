@@ -118,6 +118,6 @@ bot.on('message', function (user, userId, channelId, message, evt) {
 
 // disconnect
 bot.on('disconnect', function(msg, code) {
-  logger.info(`Bot disconnected from Discord with code ${code}, message: ${message}.`)
+  logger.info(`Bot disconnected from Discord with code ${code}, message: ${msg}.`)
   bot.connect();
 });
