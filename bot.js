@@ -115,3 +115,9 @@ bot.on('message', function (user, userId, channelId, message, evt) {
     logger.error(`Error in general bot commands: ${e}.`);
   }
 });
+
+// disconnect
+bot.on('disconnect', function(msg, code) {
+  logger.info(`Bot disconnected from Discord with code ${code}, message: ${message}.`)
+  bot.connect();
+});
