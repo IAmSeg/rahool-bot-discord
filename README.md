@@ -21,7 +21,24 @@ if you'd like to run it yourself with your own API keys.
 
 ### Setup
 
-To get up and running, you need your own Discord auth token for your bot. [Use this guide](https://medium.com/@renesansz/tutorial-creating-a-simple-discord-bot-9465a2764dc0) to get started with your own bot. After that you'll need to setup your own firebase db and get your firebase config. [Go here for firebase setup.](https://firebase.google.com/docs/web/setup?authuser=0) 
+To get up and running, you need your own Discord auth token for your bot. [Use this guide](https://medium.com/@renesansz/tutorial-creating-a-simple-discord-bot-9465a2764dc0) to get started with your own bot. You'll then want to create a file called `auth.json` that has the following:  
+
+```
+{
+  "token": "YOUR_TOKEN_HERE"
+}
+```
+
+After that you'll need to setup your own firebase db and get your firebase config. [Go here for firebase setup.](https://firebase.google.com/docs/web/setup?authuser=0) Then create a file called `firebaseConfig.js` that contains the following: 
+
+```js
+export default {
+  apiKey: "<API_KEY>",
+  authDomain: "<PROJECT_ID>.firebaseapp.com",
+  databaseURL: "https://<DATABASE_NAME>.firebaseio.com",
+  messagingSenderId: "<SENDER_ID>",
+};
+```
 
 To use the current `!buyengram` functionality you'll need an armory of destiny items setup in a firebase db. You can do this however you want, but I use a python script to fetch the destiny manifest from the bungie API and populate the db with that. If you wanna see how I did it, just ask. I don't really want to go through the trouble of filtering out the unused code in the script and removing all private keys to open source it, but if you need it I can send it to you. 
 You'll need your own bungie API key for that. [Go here to setup your bungie developer account](https://bungie-net.github.io/multi/index.html). 
