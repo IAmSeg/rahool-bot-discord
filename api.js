@@ -13,7 +13,10 @@ logger.add(logger.transports.Console, {
 logger.level = 'debug';
 
 // Initialize Firebase
-firebase.initializeApp(config);
+firebase.initializeApp(config.config);
+firebase.auth().signInWithEmailAndPassword(config.credentials.email, config.credentials.password).catch(err => {
+  logger.error(`Error signing into firebase with email and password: ${err}`);
+});
 
 const api = {
   database: firebase.database(),
