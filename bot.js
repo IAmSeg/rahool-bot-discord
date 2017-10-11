@@ -19,7 +19,7 @@ var bot = new Discord.Client({
 });
 
 var randomGames = [
-  'Stealing your glimer...',
+  'Stealing your glimmer...',
   'Try !glimmer',
   'Try !bankamount',
   'Try !buyengram',
