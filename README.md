@@ -40,8 +40,7 @@ export default {
 };
 ```
 
-To use the current `!buyengram` functionality you'll need an armory of destiny items setup in a firebase db. You can do this however you want, but I use a python script to fetch the destiny manifest from the bungie API and populate the db with that. If you wanna see how I did it, just ask. I don't really want to go through the trouble of filtering out the unused code in the script and removing all private keys to open source it, but if you need it I can send it to you. 
-You'll need your own bungie API key for that. [Go here to setup your bungie developer account](https://bungie-net.github.io/multi/index.html). 
+To use the current `!buyengram` functionality you'll need an armory of destiny items setup in a firebase db. You can do this however you want, but I use a python script to fetch the destiny manifest from the bungie API and populate the db with that. If you wanna see how I did it, [check out the repo here](https://github.com/MrDoctorJ/destiny-armory-generator/tree/master).
 
 
 ### Contributing
