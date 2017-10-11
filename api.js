@@ -106,20 +106,20 @@ const api = {
         }
 
         // successful bank rob
-        if (guess === secret) {
-          let amount = 0;
-          bot.sendMessage({
-            to: channelId,
-            message: `Congratulations <@${userId}>! You guessed the secret number and successfully robbed the global glimmer bank of **${amount}** glimmer!`
-          });
-
+        if (guess == secret) {
           bankRef.once('value', snapshot => {
-            amount = snapshot.val().amount;
-            bankRef.update({ amount: 0 });
-          });
+            let amount = snapshot.val().amount;
 
-          userRef.once('value', snapshot => {
-            userRef.update({ glimmer: snapshot.val().glimmer + amount });
+            bot.sendMessage({
+              to: channelId,
+              message: `Congratulations <@${userId}>! You guessed the secret number and successfully robbed the global glimmer bank of **${amount}** glimmer!`
+            });
+
+            userRef.once('value', snapshot => {
+              userRef.update({ glimmer: snapshot.val().glimmer + amount });
+            });
+
+            bankRef.update({ amount: 0 });
           });
         }
         else {
