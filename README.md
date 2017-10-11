@@ -33,12 +33,20 @@ After that you'll need to setup your own firebase db and get your firebase confi
 
 ```js
 export default {
-  apiKey: "<API_KEY>",
-  authDomain: "<PROJECT_ID>.firebaseapp.com",
-  databaseURL: "https://<DATABASE_NAME>.firebaseio.com",
-  messagingSenderId: "<SENDER_ID>",
+  config: {
+    apiKey: "<API_KEY>",
+    authDomain: "<PROJECT_ID>.firebaseapp.com",
+    databaseURL: "https://<DATABASE_NAME>.firebaseio.com",
+    messagingSenderId: "<SENDER_ID>"
+  },
+  credentials: {
+    email: 'YOUR_AUTHENTICATED_BOT_EMAIL_HERE',
+    password: 'YOUR_BOT_PASSWORD_HERE'
+  }
 };
 ```
+
+**Note:** the `credentials` object is only necessary if you are locking down permissions on your firebase db, which I recommend doing. If you have it just open to writing, however, you don't need the `credentials` object.
 
 To use the current `!buyengram` functionality you'll need an armory of destiny items setup in a firebase db. You can do this however you want, but I use a python script to fetch the destiny manifest from the bungie API and populate the db with that. If you wanna see how I did it, [check out the repo here](https://github.com/MrDoctorJ/destiny-armory-generator/tree/master).
 
