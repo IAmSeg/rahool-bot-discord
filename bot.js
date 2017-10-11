@@ -18,11 +18,28 @@ var bot = new Discord.Client({
    autorun: true
 });
 
+var randomGames = [
+  'Stealing your glimer...',
+  'Try !glimmer',
+  'Try !bankamount',
+  'Try !buyengram',
+  'Try !gamble',
+  'Try !robbank',
+  'Hoarding exotics...',
+  'Snorting bright dust',
+];
+
 bot.on('ready', function (evt) {
   logger.info('Connected');
   logger.info('Logged in as: ');
   logger.info(bot.username + ' - (' + bot.id + ')');
+
+  setInterval(() => {
+    let rand = Math.floor(Math.random() * 8);
+    bot.setPresence({ status: 'online', game: { name: randomGames[rand] }});
+  }, 60000);
 });
+
 
 bot.on('message', function (user, userId, channelId, message, evt) {
   try {
@@ -115,6 +132,7 @@ bot.on('message', function (user, userId, channelId, message, evt) {
     logger.error(`Error in general bot commands: ${e}.`);
   }
 });
+
 
 // disconnect
 bot.on('disconnect', function(msg, code) {
