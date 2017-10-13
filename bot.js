@@ -26,6 +26,7 @@ var randomGames = [
   'Try !buyengram',
   'Try !gamble',
   'Try !robbank',
+  'Try !battle',
   'Hoarding exotics...',
   'Snorting bright dust',
 ];
