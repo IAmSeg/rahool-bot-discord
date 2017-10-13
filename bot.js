@@ -104,6 +104,12 @@ bot.on('message', function (user, userId, channelId, message, evt) {
     // try to rob the bank
     if (message.split(' ')[0] === '!robbank') {
       let guess = message.split(' ')[1];
+      if (!guess) {
+        bot.sendMessage({
+          to: channelId,
+          message: `<@${userId}>, you should probably guess a secret number (1-100) if you wanna rob the bank. **!robbank SECRET_NUMBER**`
+        });
+      }
       api.robBank(userId, guess, bot, channelId);
     }
 
@@ -123,10 +129,40 @@ bot.on('message', function (user, userId, channelId, message, evt) {
                     `17% chance of winning your original amount (67-83).\n` +
                     `12% chance of winning double your gamble (84-95).\n` +
                     `5% chance of tripling your gamble (96-100).`;
-       bot.sendMessage({
-         to: channelId,
-         message
+      bot.sendMessage({
+        to: channelId,
+        message
       });
+    }
+
+    // testing delete
+    if (message === '!delete') {
+      bot.sendMessage({
+        to: channelId,
+        message: `Testing delete in 5 seconds`
+      }, (error, response) => {
+        setTimeout(() => {
+          bot.deleteMessage({
+            channelID: channelId,
+            messageID: response.id
+          }, (err) => {
+            logger.error(`Error deleting message: ${response.id} in channel ${channelId}: ${err}`);
+          });
+        }, 5000);
+      });
+    }
+
+    // battle
+    if (message.split(' ')[0] === '!battle') {
+      let tier = message.split(' ')[1];
+      if (!tier)  {
+        bot.sendMessage({
+          to: channelId,
+          message: `<@${userId}>, please select a tier (1-8) of enemy to battle. **!battle ENEMY_TIER**`
+        });
+      }
+      else 
+        api.battle(userId, bot, channelId, tier);
     }
   }
   catch (e) {
