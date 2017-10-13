@@ -156,7 +156,7 @@ bot.on('message', function (user, userId, channelId, message, evt) {
     // battle
     if (message.split(' ')[0] === '!battle') {
       let tier = message.split(' ')[1];
-      if (!tier)  {
+      if (!tier || isNaN(tier) || tier < 1 || tier > 8) {
         bot.sendMessage({
           to: channelId,
           message: `<@${userId}>, please select a tier (1-8) of enemy to battle. **!battle ENEMY_TIER**`

@@ -691,7 +691,6 @@ const api = {
         });
 
         let roll = utilities.randomNumberBetween(1, 100);
-        console.log(roll);
         if (roll <= chanceToWin)
           won = true;
 
