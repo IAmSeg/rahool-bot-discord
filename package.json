@@ -7,6 +7,8 @@
     "discord.io": "^2.5.2",
     "firebase": "^4.3.0",
     "import-export": "^1.0.1",
+    "moment": "^2.18.1",
+    "request": "^2.83.0",
     "winston": "^2.3.1"
   }
 }

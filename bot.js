@@ -110,6 +110,9 @@ bot.on('message', function (user, userId, channelId, message, evt) {
          message
       });
      }
+
+    if (message === '!vendors') 
+      api.get300Vendors(bot, channelId);
   }
   catch (e) {
     logger.error(`Error in general bot commands: ${e}.`);

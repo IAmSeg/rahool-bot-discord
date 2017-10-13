@@ -2,7 +2,9 @@ import config from './firebaseConfig';
 import lightLevel from './lightLevel';
 import firebase from 'firebase';
 import utilities from './utilities';
-const logger = require('winston');
+import request from 'request';
+import vendorEngramConfig from './vendorEngramsConfig';
+import logger from 'winston';
 
 // Configure logger settings
 logger.remove(logger.transports.Console);
@@ -592,6 +594,30 @@ const api = {
     catch (e) {
       logger.error(`Error in updateLightLevel for ${userId}: ${e}.`);
     }
+  },
+
+  // @summary checks for 300 level gear from vendorengrams.xyz
+  // @param bot - this bot, duh
+  // @channelId - id of the channel to write to
+  get300Vendors(bot, channelId) {
+    request(`${vendorEngramConfig.api}/getVendorDrops?key=${vendorEngramConfig.key}`, (error, response, body) => {
+      // turn body into an array and filter to only vendors who have verified 300 drops
+      let vendors = JSON.parse(body).filter(vendor => vendor.type === 3 && vendor.verified === 1);
+
+      // if there are any dropping 300 level gear
+      if (vendors.length > 0) {
+        // tag our specific vendor engrams role
+        let message = ` `;
+        vendors.forEach(vendor => {
+          message += `${vendorEngramConfig.vendors[vendor.vendor]} is currently dropping 300 Power Level gear.\n`;
+        });
+
+        bot.sendMessage({
+          to: channelId,
+          message
+        });
+      }
+    });
   }
 }
 
