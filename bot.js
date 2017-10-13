@@ -142,7 +142,7 @@ setInterval(() => {
   catch (e) {
     logger.error(`Error getting vendor engrams: ${e}.`);
   }
-}, 300000);
+}, 480000);
 
 
 // disconnect
