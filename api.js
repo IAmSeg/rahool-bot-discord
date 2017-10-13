@@ -15,7 +15,10 @@ logger.add(logger.transports.Console, {
 logger.level = 'debug';
 
 // Initialize Firebase
-firebase.initializeApp(config);
+firebase.initializeApp(config.config);
+firebase.auth().signInWithEmailAndPassword(config.credentials.email, config.credentials.password).catch(err => {
+  logger.error(`Error signing into firebase with email and password: ${err}`);
+});
 
 const api = {
   database: firebase.database(),
@@ -108,20 +111,20 @@ const api = {
         }
 
         // successful bank rob
-        if (guess === secret) {
-          let amount = 0;
-          bot.sendMessage({
-            to: channelId,
-            message: `Congratulations <@${userId}>! You guessed the secret number and successfully robbed the global glimmer bank of **${amount}**`
-          });
-
+        if (guess == secret) {
           bankRef.once('value', snapshot => {
-            amount = snapshot.val().amount;
-            bankRef.update({ amount: 0 });
-          });
+            let amount = snapshot.val().amount;
 
-          userRef.once('value', snapshot => {
-            userRef.update({ glimmer: snapshot.val().glimmer + amount });
+            bot.sendMessage({
+              to: channelId,
+              message: `Congratulations <@${userId}>! You guessed the secret number and successfully robbed the global glimmer bank of **${amount}** glimmer!`
+            });
+
+            userRef.once('value', snapshot => {
+              userRef.update({ glimmer: snapshot.val().glimmer + amount });
+            });
+
+            bankRef.update({ amount: 0 });
           });
         }
         else {
@@ -147,9 +150,10 @@ const api = {
   },
 
   // @summary gets current loadout for user. this includes their specific item names and light levels
+  // @param userId - calling user
   // @param bot - this bot, duh
   // @channelId - id of the channel to write to
-  getLoadout(bot, channelId) {
+  getLoadout(userId, bot, channelId) {
     try {
       const ref = this.database.ref(`users/${userId}`);
       ref.once('value', snapshot => {
