@@ -5,6 +5,7 @@ import utilities from './utilities';
 import request from 'request';
 import vendorEngramConfig from './vendorEngramsConfig';
 import logger from 'winston';
+import moment from 'moment';
 
 // Configure logger settings
 logger.remove(logger.transports.Console);
@@ -604,24 +605,37 @@ const api = {
   // @param bot - this bot, duh
   // @channelId - id of the channel to write to
   get300Vendors(bot, channelId) {
-    request(`${vendorEngramConfig.api}/getVendorDrops?key=${vendorEngramConfig.key}`, (error, response, body) => {
-      // turn body into an array and filter to only vendors who have verified 300 drops
-      let vendors = JSON.parse(body).filter(vendor => vendor.type === 3 && vendor.verified === 1);
+    try {
+      request(`${vendorEngramConfig.api}/getVendorDrops?key=${vendorEngramConfig.key}`, (error, response, body) => {
+        // turn body into an array and filter to only vendors who have verified 300 drops
+        let vendors = JSON.parse(body).filter(vendor => vendor.type === 3 && vendor.verified === 1);
 
-      // if there are any dropping 300 level gear
-      if (vendors.length > 0) {
-        // tag our specific vendor engrams role
-        let message = ` `;
-        vendors.forEach(vendor => {
-          message += `${vendorEngramConfig.vendors[vendor.vendor]} is currently dropping 300 Power Level gear.\n`;
-        });
+        // if there are any dropping 300 level gear
+        if (vendors.length > 0) {
+          // tag our specific vendor engrams role
+          let message = `${vendorEngramConfig.roleId} `;
+          vendors.forEach(vendor => {
+            message += `${vendorEngramConfig.vendors[vendor.vendor]} is currently dropping 300 Power Level gear.\n`;
+          });
 
-        bot.sendMessage({
-          to: channelId,
-          message
-        });
-      }
-    });
+          // determine when this will likely expire (at the nearest half hour)
+          message += `This will **likely** change in `;
+          let thisMinute = moment().minute();
+          if (thisMinute < 30)
+            message += `**${30 - thisMinute} minutes**.`
+          else
+            message += `**${60 - thisMinute} minutes**.`
+
+          bot.sendMessage({
+            to: channelId,
+            message
+          });
+        }
+      });
+    }
+    catch (e) {
+      logger.error(`Error in get300Vendors for: ${e}.`);
+    }
   }
 }
 

@@ -3,6 +3,7 @@ const logger = require('winston');
 const auth = require('./auth.json');
 import api from './api';
 import utilities from './utilities';
+import vendorEngramsConfig from './vendorEngramsConfig';
 
 // Configure logger settings
 logger.remove(logger.transports.Console);
@@ -126,15 +127,22 @@ bot.on('message', function (user, userId, channelId, message, evt) {
          to: channelId,
          message
       });
-     }
-
-    if (message === '!vendors') 
-      api.get300Vendors(bot, channelId);
+    }
   }
   catch (e) {
     logger.error(`Error in general bot commands: ${e}.`);
   }
 });
+
+// set interval to check for 300 level vendor engrams
+setInterval(() => {
+  try {
+    api.get300Vendors(bot, vendorEngramsConfig.channelId);
+  }
+  catch (e) {
+    logger.error(`Error getting vendor engrams: ${e}.`);
+  }
+}, 300000);
 
 
 // disconnect
