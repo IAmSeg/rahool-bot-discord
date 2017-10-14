@@ -1,3 +1,5 @@
+import utilities from './utilities';
+
 export default {
   enemyConfig: [
     {
@@ -73,7 +75,7 @@ export default {
     }
   ],
 
-  /// @summary - calculates the users chance to win a battle based on their light, the enemy light and the enemy tier
+  // @summary - calculates the users chance to win a battle based on their light, the enemy light and the enemy tier
   // @param yourlight - current users light
   // @param enemyLight - enemyLight, between min/max of tier above
   // @param tier - tier of enemy, can be seen above
@@ -81,6 +83,20 @@ export default {
   calculateChanceToWin(yourLight, enemyLight, enemyTier) {
     let chanceToWin = (((this.enemyLightConfig[enemyTier].c1 * yourLight + this.enemyLightConfig[enemyTier].c2) + (yourLight * 100 / enemyLight)) / 2).toFixed(2);
     return chanceToWin >= 100 ? 99.99 : chanceToWin;
+  },
+
+  // @summary - calculates the users glimmer they will win 
+  // @param chanceToWin - users chance to win, calculated above
+  // @returns glimmer won against the enemy
+  calculateGlimmerWon(chanceToWin) {
+    return Math.floor(utilities.randomNumberBetween(this.enemyGlimmerConfig[tier].min, this.enemyGlimmerConfig[tier].max) * (1 + (1 - (chanceToWin / 100))));
+  },
+
+  // @summary - calculates the users glimmer they will lose
+  // @param chanceToWin - users chance to win, calculated above
+  // @returns glimmer lost against the enemy
+  calculateGlimmerLost(chanceToWin) {
+    return Math.floor(utilities.randomNumberBetween(this.enemyGlimmerConfig[tier].min, this.enemyGlimmerConfig[tier].max / 3) * (1 + (chanceToWin / 100)));
   },
 
   enemyGlimmerConfig: [

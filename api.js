@@ -726,7 +726,7 @@ const api = {
         let glimmerWonOrLost = 0;
         // if we won
         if (won) {
-          glimmerWonOrLost = Math.floor(utilities.randomNumberBetween(battleConfig.enemyGlimmerConfig[tier].min, battleConfig.enemyGlimmerConfig[tier].max) * (1 + (1 - (chanceToWin / 100))));
+          glimmerWonOrLost = battleConfig.calculateGlimmerWon(chanceToWin);
           let randomMessage = battleConfig.successMessages[utilities.randomNumberBetween(0, battleConfig.successMessages.length - 1)];
           let afterMessage = `After a difficult fight <@${userId}>, ${randomMessage} the **${selectedEnemy}**. You walk away the victor, earning **${glimmerWonOrLost} glimmer** in the process.`;
           setTimeout(() => {
@@ -737,7 +737,7 @@ const api = {
           }, 11000);
         }
         else { // we lost
-          glimmerWonOrLost = Math.floor(utilities.randomNumberBetween(battleConfig.enemyGlimmerConfig[tier].min, battleConfig.enemyGlimmerConfig[tier].max / 3) * (1 + (chanceToWin / 100)));
+          glimmerWonOrLost = battleConfig.calculateGlimmerLost(chanceToWin);
           let randomMessage = battleConfig.defeatMessages[utilities.randomNumberBetween(0, battleConfig.defeatMessages.length - 1)];
           let afterMessage = `After a difficult fight <@${userId}>, ${randomMessage} the **${selectedEnemy}**. You walk away defeated, losing **${glimmerWonOrLost} glimmer** in the process.`;
           setTimeout(() => {
@@ -748,6 +748,7 @@ const api = {
           }, 11000);
         }
 
+        console.log(glimmerWonOrLost);
         // add a battle cooldown
         user.update({ battleCooldown: true });
 
