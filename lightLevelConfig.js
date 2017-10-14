@@ -85,7 +85,7 @@ const lightLevelConfig = {
   /// @return the tier of engram the user has earned
   determineEarnedEngram(currentLight) {
     let eligibleTiers = this.rarityTiers.filter(tier => {
-      return (currentLight <= tier.max && currentLight >= tier.min);
+      return (currentLight <= (tier.max * this.maxLight) && currentLight >= (tier.min * this.maxLight));
     });
 
     if (eligibleTiers.length == 1)
