@@ -165,6 +165,67 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       else 
         api.battle(userId, bot, channelId, tier);
     }
+
+    //loan
+    if (message.split(' ')[0] === '!loan') {
+      if (message.split(' ').length < 3) {
+        bot.sendMessage({
+          to: channelId,
+          message: `<@${userId}> please specify an amount and someone to loan to. **!loan amount @user**.`
+        })
+      }
+      else {
+        let amount = Number(message.split(' ')[1]);
+        let loanTo = message.split(' ')[2];
+
+        // extract the loanTo id from the <@id> string
+        // sometimes there's a random ! at the beginning also
+        let loanToId = loanTo.substring(2, loanTo.length - 1);
+        if (loanToId[0] == '!') 
+          loanToId = loanToId.substring(1, loanTo.length - 1);
+
+        if (isNaN(loanToId)) {
+          bot.sendMessage({
+            to: channelId,
+            message: `<@${userId}> that user doesn't exist.`
+          });
+        }
+        else if (isNaN(amount)) {
+          bot.sendMessage({
+            to: channelId,
+            message: `<@${userId}> ${amount} isn't a number, dumbass.`
+          });
+        }
+        else 
+          api.loan(userId, amount, loanToId, bot, channelId);
+      }
+    }
+
+    //collect loan
+    // if (message.split(' ')[0] === '!collect') {
+    //   if (message.split(' ').length < 3) {
+    //     bot.sendMessage({
+    //       to: channelId,
+    //       message: `<@${userId}> please specify an amount and someone to collect from. **!collect amount @user**.`
+    //     })
+    //   }
+    //   let amount = Number(message.split(' ')[1]);
+    //   let collectFrom = message.split(' ')[2];
+    //   let collectFromId = collectFrom.substring(3, collectFrom.length - 1);
+    //   if (isNaN(amount)) {
+    //     bot.sendMessage({
+    //       to: channelId,
+    //       message: `<@${userId}> ${amount} isn't a number, dumbass.`
+    //     });
+    //   }
+    //   else 
+    //     api.collect(userId, amount, collectFromId, bot, channelId);
+    // }
+
+    // check who you owe to
+    if (message === '!debt') {
+      api.getDebt(userId, bot, channelId);
+    }
   }
   catch (e) {
     logger.error(`Error in general bot commands: ${e}.`);

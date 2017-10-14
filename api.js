@@ -775,6 +775,161 @@ const api = {
     catch (e) {
       logger.error(`Error in battle for user: ${userId}: ${e}.`);
     }
+  },
+
+  // @summary loans glimmer from one user to another
+  // @param loaner - calling user
+  // @param amount - the amount the user chose to loan
+  // @param loanTo - the user to loan amount to
+  // @param bot - this bot, duh
+  // @channelId - id of the channel to write to
+  loan(loaner, amount, loanTo, bot, channelId) {
+    try {
+      if (amount < 0) {
+
+      }
+      // make sure the user has that amount
+      const userRef = this.database.ref(`users/${loaner}`);
+      userRef.once('value', userSnapshot => {
+        if (userSnapshot.val()) {
+          if (userSnapshot.val().glimmer < amount) {
+            bot.sendMessage({
+              to: channelId,
+              message: `<@${loaner}> you don't have that much to loan.`
+            });
+
+            return;
+          }
+          else {
+            // make sure the user exists
+            const loanToRef = this.database.ref(`users/${loanTo}`);
+            loanToRef.once('value', loanToSnapshot => {
+              if (loanToSnapshot.val()) {
+                //loan the user the amount
+                this.takeLoanFrom(loaner, amount);
+                // give loan to the other user
+                this.giveLoanTo(loanTo, amount, loaner, userSnapshot.val().username);
+                bot.sendMessage({
+                  to: channelId,
+                  message: `<@${loaner}> just loaned ${amount} to <@${loanTo}>. How nice.`
+                });
+              }
+              else {
+                bot.sendMessage({
+                  to: channelId,
+                  message: `<@${loaner}> that user doesn't exist, guess we'll give that glimmer to the bank! :)`
+                });
+                this.takeLoanFrom(loaner, amount);
+                this.addAmountToBank(amount);
+              }
+            })
+          }
+        }
+      });
+    }
+    catch (e) {
+      logger.error(`Error in loan from ${loaner} to ${loanTo} for amount: ${amount}: ${e}`);
+    }
+  },
+
+  // @summary takes a loan frmo userId
+  // @param userId - calling user
+  // @param amount - the amount the user chose to loan
+  takeLoanFrom(userId, amount) {
+    try {
+      // make sure the user has that amount
+      const userRef = this.database.ref(`users/${userId}`);
+      userRef.once('value', snapshot => {
+        if (snapshot.val()) {
+          userRef.update({ glimmer: snapshot.val().glimmer - amount });
+        }
+      });
+    }
+    catch (e) {
+      logger.error(`Error in takeLoanFrom for ${userId} for amount: ${amount}: ${e}`);
+    }
+  },
+
+  // @summary adds a loan to a user
+  // @param userId - user to add loan to
+  // @param amount - the amount the user chose to loan
+  // @param loaner - the id of the user who loaned them glimmer
+  // @param loanerName - the name of the user who loaned them glimmer
+  giveLoanTo(loanTo, amount, loaner, loanerName) {
+    try {
+      // make sure the user has that amount
+      const userRef = this.database.ref(`users/${loanTo}`);
+      userRef.once('value', snapshot => {
+        if (snapshot.val()) {
+          let oweTo = {};
+          if (snapshot.val().oweTo && snapshot.val().oweTo[loaner])
+            oweTo[loaner] = { name: loanerName, amount: snapshot.val().oweTo[loaner].amount + amount };
+          else 
+            oweTo[loaner] = { name: loanerName, amount };
+
+          userRef.update({ glimmer: snapshot.val().glimmer + amount, oweTo });
+        }
+      });
+    }
+    catch (e) {
+      logger.error(`Error in giveLoanTo for ${loanTo} for amount: ${amount}: ${e}`);
+    }
+  },
+
+  // @summary adds a loan to a user
+  // @param userId - user to collect from
+  // @param amount - amount to collect
+  // @param collectFromId - person to collect from
+  // @param bot - this bot
+  // @param channelId - channel to write to
+  collect(userId, amount, collectFromId, bot, channelId) {
+
+  },
+
+  // @summary checks debt for a user
+  // @param userId - user to check debt for
+  // @param bot - this bot
+  // @param channelId - channel to write to
+  getDebt(userId, bot, channelId) {
+    try {
+      const user = this.database.ref(`users/${userId}`);
+      user.once('value', snapshot => {
+        if (snapshot.val()) {
+          let owedAmount = 0;
+          let message = `<@${userId}> you owe\n`;
+          if (snapshot.val().oweTo) {
+            for (let i in snapshot.val().oweTo) {
+              if (snapshot.val().oweTo[i].amount > 0) {
+                owedAmount += snapshot.val().oweTo[i].amount;
+                message += `**${snapshot.val().oweTo[i].amount}** glimmer to **${snapshot.val().oweTo[i].name}**\n`;
+              }
+            }
+          }
+
+          if (owedAmount === 0)
+            message = `<@${userId}> you are debt free!`;
+          else 
+            message += `**${owedAmount}** glimmer in debt total.`
+          bot.sendMessage({
+            to: channelId,
+            message
+          });
+        }
+      });
+    } 
+    catch (e) {
+      logger.error(`Error in getDebt for user: ${userId}: ${e}`);
+    }
+  },
+
+  // @summary repay debt to a user
+  // @param userId - user who is repaying debt
+  // @param amount - amount to repay
+  // @param repayToId - user to repay to
+  // @param bot - this bot
+  // @param channelId - channel to write to
+  repay(userId, amount, repayToId, bot, channelId) {
+
   }
 }
 
