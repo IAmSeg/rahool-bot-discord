@@ -205,6 +205,7 @@ const api = {
     try {
       let message = ``;
 
+      //Check that amount is valid
       if (isNaN(amount)) {
         bot.sendMessage({
           to: channelId,
@@ -221,8 +222,14 @@ const api = {
         return;
       }
 
+      //Find users
       const user = this.database.ref(`users/${userId}`);
       const userLoanTo = this.database.ref(`users/${loanTo}`);
+      if (userLoanTo.oweTo === undefined) {
+        userLoanTo.update({ oweTo: {} });
+      }
+
+      //Check that user issuing loan has enough glimmer
       user.once('value', snapshot => {
         if (snapshot.val()) {
           if (snapshot.val().glimmer < amount) {
@@ -230,17 +237,20 @@ const api = {
               to: channelId,
               message: `<@${userId}> you don't have that much glimmer to loan dickface.`
             });
+            //If user does not have enough glimmer, do nothing else
             return;
           }
+          //If user has enough glimmer, transfer glimmer
           bot.sendMessage({
             to: channelId,
-            message: `<@${userId}> Good financial decision`
+            message: `<@${userId}> you just loaned <@{loanTo}> some glimmer, good luck...`
           });
           let glimmer = Number(snapshot.val().glimmer) - Number(amount);
           snapshot.ref.update({ glimmer });
         }
       });
 
+      //Give glimmer to loan recipient
       userLoanTo.once('value', snapshot => {
         if (snapshot.val()) {
           bot.sendMessage({
@@ -250,14 +260,11 @@ const api = {
 
           if (!(isNaN(snapshot.val().oweTo.userId))) {
             let owed = Number(snapshot.val().oweTo.userId) + Number(amount);
-            let oweTo = {userId: Number(owed)};
-            console.log(owed);
+            oweTo[userId] = Number(owed);
             snapshot.ref.update({ oweTo });
           }
           else {
-            let oweTo = {};
             oweTo[userId] = Number(amount);
-            console.log(Number(amount));
             snapshot.ref.update({ oweTo });
           }
 
@@ -280,33 +287,39 @@ const api = {
     try {
       let paid = 0;
 
+      //Find users
       const user = this.database.ref(`users/${userId}`);
       const userCollectFrom = this.database.ref(`users/${collectFrom}`);
+
       userCollectFrom.once('value', snapshot => {
         if (snapshot.val()) {
+          //Check that this is a valid request
           if (isNaN(snapshot.val().oweTo.userId)) {
             bot.sendMessage({
               to: channelId,
-              message: `<@${userId}> Nope`
+              message: `Nice try <@${userId}>, <@${collectFrom}> doesn't owe you anything.`
             });
           }
           else {
+            //Take all the user's glimmer, or the amount of the loan, whichever is smaller
             let owed = Number(snapshot.val().oweTo.userId);
-            let glimmer = (snapshot.val().glimmer > owed) ? (snapshot.val().glimmer - Math.floor(owed)) : 0;
+            let glimmer = (snapshot.val().glimmer >= owed) ? (snapshot.val().glimmer - Math.floor(owed)) : 0;
             paid = (snapshot.val().glimmer - glimmer);
-
-            console.log(owed);
-            console.log(paid);
 
             snapshot.ref.update({ glimmer });
 
+            //Keep track of who owe's who how much
             let oweTo = {};
-            oweTo[userId] =  Number((owed-paid) > 0 ? (owed - paid) : 0);
+            oweTo[userId] =  Number(owed-paid);
+            if (oweTo[userId] === 0) {
+              delete oweTo[userId];
+            }
             snapshot.ref.update({ oweTo });
           }
         }
       });
 
+      //Update the loaner's glimmer
       user.once('value', snapshot => {
         if (snapshot.val()) {
           bot.sendMessage({
