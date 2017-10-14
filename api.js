@@ -642,7 +642,6 @@ const api = {
             message
           }, (error, response) => {
             setTimeout(() => {
-              console.log(`Attempting to delete message ${response.id} from channel ${response.channel_id}`);
               bot.deleteMessage({
                 channelID: response.channel_id,
                 messageID: response.id

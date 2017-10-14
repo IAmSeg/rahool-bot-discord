@@ -118,7 +118,7 @@ const lightLevelConfig = {
     if (newLight > (engramTier.max * this.maxLight) && currentLight < (this.maxLight * 0.9667))
       newLight = (engramTier.max * this.maxLight);
 
-    return newLight > this.maxLight ? this.maxLight : newLight;
+    return Math.floor(newLight > this.maxLight ? this.maxLight : newLight);
   }
 }
 
