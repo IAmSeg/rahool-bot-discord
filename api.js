@@ -1,5 +1,5 @@
 import config from './firebaseConfig';
-import lightLevel from './lightLevel';
+import lightLevelConfig from './lightLevelConfig';
 import firebase from 'firebase';
 import utilities from './utilities';
 import request from 'request';
@@ -168,7 +168,7 @@ const api = {
           `Chest Armor: ${snapshot.val().itemLightLevels.chestName} (${snapshot.val().itemLightLevels.chestLight})\n` +
           `Leg Armor: ${snapshot.val().itemLightLevels.legsName} (${snapshot.val().itemLightLevels.legsLight})\n` +
           `Class Item: ${snapshot.val().itemLightLevels.className} (${snapshot.val().itemLightLevels.classLight})\n` +
-          `Total Light: **${lightLevel.calculateLightLevel(snapshot.val())}**`;
+          `Total Light: **${lightLevelConfig.calculateLightLevel(snapshot.val())}**`;
 
         bot.sendMessage({
           to: channelId,
@@ -194,10 +194,10 @@ const api = {
         for (let user in snapVal)
           userList.push(snapVal[user]);
 
-        userList.sort((a, b) => lightLevel.calculateLightLevel(b) - lightLevel.calculateLightLevel(a));
+        userList.sort((a, b) => lightLevelConfig.calculateLightLevel(b) - lightLevelConfig.calculateLightLevel(a));
 
         userList.forEach((user, i) => {
-          message += `${i + 1}: ${user.username}, light: ${lightLevel.calculateLightLevel(user)}\n`; 
+          message += `${i + 1}: ${user.username}, light: ${lightLevelConfig.calculateLightLevel(user)}\n`; 
         });
 
         bot.sendMessage({
@@ -380,7 +380,7 @@ const api = {
       const user = this.database.ref(`users/${userId}`);
       user.once('value', snapshot => {
         if (snapshot.val()) {
-          const currentLight = lightLevel.calculateLightLevel(snapshot.val());
+          const currentLight = lightLevelConfig.calculateLightLevel(snapshot.val());
           bot.sendMessage({
             to: channelId,
             message: `Current light level for <@${userId}>: **${currentLight}**.`
@@ -411,13 +411,16 @@ const api = {
             return;
           }
 
+          // remove 100 from the user and add it to the bank
           snapshot.ref.update({ glimmer: snapshot.val().glimmer - 100 });
           const bankRef = this.database.ref(`glimmerBank`);
           bankRef.once('value', bankSnapshot => {
             bankSnapshot.ref.update({ amount: bankSnapshot.val().amount + 100 });
           });
-          let currentLight = lightLevel.calculateLightLevel(snapshot.val())
-          let engramTier = lightLevel.determineEarnedEngram(currentLight);
+
+          let currentLight = lightLevelConfig.calculateLightLevel(snapshot.val())
+          let engramTier = lightLevelConfig.determineEarnedEngram(currentLight);
+
           // grab a random item from the armory of this tier
           const items = this.database.ref(`armory/${engramTier.name}`);
           items.once('value', itemSnapshot => {
@@ -428,7 +431,7 @@ const api = {
 
             let random = utilities.randomNumberBetween(0, tierItems.length - 1);
             let selectedItem = tierItems[random];
-            let engramLightLevel = lightLevel.determineEngramLightLevel(currentLight, engramTier);
+            let engramLightLevel = lightLevelConfig.determineEngramLightLevel(currentLight, engramTier);
 
             this.updateLightLevel(userId, selectedItem, engramLightLevel);
 
@@ -681,8 +684,8 @@ const api = {
           let selectedEnemy = `${selectedEnemyRace} ${selectedEnemyType}`;
           let enemyLocationIndex = utilities.randomNumberBetween(0, battleConfig.enemyConfig[enemyRaceIndex].locations.length - 1);
           let battleCryIndex = utilities.randomNumberBetween(0, battleConfig.battleCries.length - 1);
-          let enemyLight = utilities.randomNumberBetween(battleConfig.enemyLightConfig[tier].min * lightLevel.maxLight, battleConfig.enemyLightConfig[tier].max * lightLevel.maxLight);
-          let yourLight = lightLevel.calculateLightLevel(snapshot.val());
+          let enemyLight = utilities.randomNumberBetween(battleConfig.enemyLightConfig[tier].min * lightLevelConfig.maxLight, battleConfig.enemyLightConfig[tier].max * lightLevelConfig.maxLight);
+          let yourLight = lightLevelConfig.calculateLightLevel(snapshot.val());
           let chanceToWin = battleConfig.calculateChanceToWin(yourLight, enemyLight, tier);
           let won = false;
 

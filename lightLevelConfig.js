@@ -39,39 +39,39 @@ const lightLevelConfig = {
   rarityTiers: [
     { name: 'Common',
       min: 0,
-      max: 100,
+      max: .3333,
       color: 'white',
       level: 0,
       minInc: 5,
       maxInc: 26
     },
     { name: 'Uncommon',
-      min: 80,
-      max: 180,
+      min: .2667,
+      max: .6,
       color: 'green',
       level: 1,
       minInc: 5,
       maxInc: 12
     },
     { name: 'Rare',
-      min: 160,
-      max: 240,
+      min: .5333,
+      max: .8,
       color: 'blue',
       level: 2,
       minInc: 2,
       maxInc: 8
     },
     { name: 'Legendary',
-      min: 220,
-      max: 290,
+      min: .7333,
+      max: .9667,
       color: 'purple',
       level: 3,
       minInc: 0,
       maxInc: 5
     },
     { name:'Exotic',
-      min: 280,
-      max: 300,
+      min: .9333,
+      max: 1.01667,
       color: 'gold',
       specialChance: .2,
       level: 4,
@@ -91,12 +91,12 @@ const lightLevelConfig = {
     if (eligibleTiers.length == 1)
       return eligibleTiers[0];
 
-    // determine which tier we will get an engram in
-    // (currentLight - lowerMin) / (higherMax - lowerMin)
     let higherTier = eligibleTiers[0].level < eligibleTiers[1].level ? eligibleTiers[1] : eligibleTiers[0];
     let lowerTier = eligibleTiers[0].level < eligibleTiers[1].level ? eligibleTiers[0] : eligibleTiers[1];
     // progress to max of highest eligible tier
-    let progress = ((currentLight - lowerTier.min) / (higherTier.max - lowerTier.min)) * 100;
+    // determine which tier we will get an engram in
+    // (currentLight - lowerMin) / (higherMax - lowerMin)
+    let progress = ((currentLight - (lowerTier.min * this.maxLight)) / ((higherTier.max * this.maxLight) - (lowerTier.min * this.maxLight))) * 100;
     let roll = Math.floor(utilities.randomNumberBetween(0, 100));
     let tier = roll <= progress ? higherTier : lowerTier;
 
@@ -114,11 +114,11 @@ const lightLevelConfig = {
   determineEngramLightLevel(currentLight , engramTier) {
     let inc = Math.floor(utilities.randomNumberBetween(engramTier.minInc, engramTier.maxInc));
     let newLight = currentLight + inc;
-    // dont let engrams go over their max, unless we are at or above 290 light
-    if (newLight > engramTier.max && currentLight < 290)
-      newLight = engramTier.max;
+    // dont let engrams go over their max, unless we are at or above 96.667% to max light
+    if (newLight > (engramTier.max * this.maxLight) && currentLight < (this.maxLight * 0.9667))
+      newLight = (engramTier.max * this.maxLight);
 
-    return newLight > 300 ? 300 : newLight;
+    return newLight > this.maxLight ? this.maxLight : newLight;
   }
 }
 
