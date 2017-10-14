@@ -141,7 +141,7 @@ const api = {
           userRef.update({ glimmer: snapshot.val().glimmer - Math.abs(fineAmount) });
           bot.sendMessage({
             to: channelId,
-            message: `Sorry <@${userId}>, you guessed incorrectly. The secret number was **${secret}**. You've been fined **${fineAmount}** glimmer by the glimmer police.`
+            message: `Sorry <@${userId}>, you were caught trying to rob the bank with a failed robbery attempt. The secret number was **${secret}**. You've been fined **${fineAmount}** glimmer by the glimmer police.`
           });
         }
       });
@@ -412,6 +412,10 @@ const api = {
           }
 
           snapshot.ref.update({ glimmer: snapshot.val().glimmer - 100 });
+          const bankRef = this.database.ref(`glimmerBank`);
+          bankRef.once('value', bankSnapshot => {
+            bankSnapshot.ref.update({ amount: bankSnapshot.val().amount + 100 });
+          });
           let currentLight = lightLevel.calculateLightLevel(snapshot.val())
           let engramTier = lightLevel.determineEarnedEngram(currentLight);
           // grab a random item from the armory of this tier
@@ -628,15 +632,16 @@ const api = {
           else
             expireMinutes = 60 - thisMinute;
 
-          message += `**${30 - thisMinute} minutes**.`
+          message += `**${expireMinutes} minutes**.`
           // send the message and set a timeout to delete the message later
           bot.sendMessage({
             to: channelId,
             message
           }, (error, response) => {
             setTimeout(() => {
+              console.log(`Attempting to delete message ${response.id} from channel ${response.channel_id}`);
               bot.deleteMessage({
-                channelID: channelId,
+                channelID: response.channel_id,
                 messageID: response.id
               });
             }, expireMinutes * 1000 * 60);
@@ -741,6 +746,10 @@ const api = {
             glimmerWonOrLost = battleConfig.calculateGlimmerLost(chanceToWin, tier);
             let randomMessage = battleConfig.defeatMessages[utilities.randomNumberBetween(0, battleConfig.defeatMessages.length - 1)];
             let afterMessage = `After a difficult fight <@${userId}>, ${randomMessage} the **${selectedEnemy}**. You walk away defeated, losing **${glimmerWonOrLost} glimmer** in the process.`;
+            const bankRef = this.database.ref(`glimmerBank`);
+            bankRef.once('value', bankSnapshot => {
+              bankSnapshot.ref.update({ amount: bankSnapshot.val().amount + glimmerWonOrLost });
+            });
             setTimeout(() => {
               bot.sendMessage({
                 to: channelId,
