@@ -87,15 +87,17 @@ export default {
 
   // @summary - calculates the users glimmer they will win 
   // @param chanceToWin - users chance to win, calculated above
+  // @param tier - tier of enemy, can be seen above
   // @returns glimmer won against the enemy
-  calculateGlimmerWon(chanceToWin) {
+  calculateGlimmerWon(chanceToWin, tier) {
     return Math.floor(utilities.randomNumberBetween(this.enemyGlimmerConfig[tier].min, this.enemyGlimmerConfig[tier].max) * (1 + (1 - (chanceToWin / 100))));
   },
 
   // @summary - calculates the users glimmer they will lose
   // @param chanceToWin - users chance to win, calculated above
+  // @param tier - tier of enemy, can be seen above
   // @returns glimmer lost against the enemy
-  calculateGlimmerLost(chanceToWin) {
+  calculateGlimmerLost(chanceToWin, tier) {
     return Math.floor(utilities.randomNumberBetween(this.enemyGlimmerConfig[tier].min, this.enemyGlimmerConfig[tier].max / 3) * (1 + (chanceToWin / 100)));
   },
 

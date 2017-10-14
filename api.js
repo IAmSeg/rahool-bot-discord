@@ -658,106 +658,110 @@ const api = {
     try {
       const user = this.database.ref(`users/${userId}`);
       user.once('value', snapshot => {
-        if (snapshot.val().battleCooldown) {
+        try {
+          if (snapshot.val().battleCooldown) {
+            bot.sendMessage({
+              to: channelId,
+              message: `<@${userId}>, you are exhausted from your previous battle. You must take time to recover.`
+            });
+
+            return;
+          }
+
+          tier = tier - 1;
+          let enemyRaceIndex = utilities.randomNumberBetween(0, battleConfig.enemyConfig.length - 1);
+          let battleStartMessageIndex = utilities.randomNumberBetween(0, battleConfig.battleStartMessages.length - 1);
+          let selectedEnemyRace = battleConfig.enemyConfig[enemyRaceIndex].name;
+          let selectedEnemyType = battleConfig.enemyConfig[enemyRaceIndex].structure[tier];
+          let selectedEnemy = `${selectedEnemyRace} ${selectedEnemyType}`;
+          let enemyLocationIndex = utilities.randomNumberBetween(0, battleConfig.enemyConfig[enemyRaceIndex].locations.length - 1);
+          let battleCryIndex = utilities.randomNumberBetween(0, battleConfig.battleCries.length - 1);
+          let enemyLight = utilities.randomNumberBetween(battleConfig.enemyLightConfig[tier].min * lightLevel.maxLight, battleConfig.enemyLightConfig[tier].max * lightLevel.maxLight);
+          let yourLight = lightLevel.calculateLightLevel(snapshot.val());
+          let chanceToWin = battleConfig.calculateChanceToWin(yourLight, enemyLight, tier);
+          let won = false;
+
+          let message = `<@${userId}>, ${battleConfig.battleStartMessages[battleStartMessageIndex]} ${battleConfig.enemyConfig[enemyRaceIndex].locations[enemyLocationIndex]}, you run across a **${selectedEnemy}** at **${enemyLight} light**. `;
+          message += `At your current light of **${yourLight}** you have a **${chanceToWin}%** chance to win. `;
+
+          message += `${battleConfig.battleCries[battleCryIndex]}. The battle begins.`;
+
           bot.sendMessage({
             to: channelId,
-            message: `<@${userId}>, you are exhausted from your previous battle. You must take time to recover.`
+            message
           });
 
-          return;
-        }
+          let roll = utilities.randomNumberBetween(1, 100);
+          if (roll <= chanceToWin)
+            won = true;
 
-        tier = tier - 1;
-        let enemyRaceIndex = utilities.randomNumberBetween(0, battleConfig.enemyConfig.length - 1);
-        let battleStartMessageIndex = utilities.randomNumberBetween(0, battleConfig.battleStartMessages.length - 1);
-        let selectedEnemyRace = battleConfig.enemyConfig[enemyRaceIndex].name;
-        let selectedEnemyType = battleConfig.enemyConfig[enemyRaceIndex].structure[tier];
-        let selectedEnemy = `${selectedEnemyRace} ${selectedEnemyType}`;
-        let enemyLocationIndex = utilities.randomNumberBetween(0, battleConfig.enemyConfig[enemyRaceIndex].locations.length - 1);
-        let battleCryIndex = utilities.randomNumberBetween(0, battleConfig.battleCries.length - 1);
-        let enemyLight = utilities.randomNumberBetween(battleConfig.enemyLightConfig[tier].min * lightLevel.maxLight, battleConfig.enemyLightConfig[tier].max * lightLevel.maxLight);
-        let yourLight = lightLevel.calculateLightLevel(snapshot.val());
-        let chanceToWin = battleConfig.calculateChanceToWin(yourLight, enemyLight, tier);
-        let won = false;
-
-        let message = `<@${userId}>, ${battleConfig.battleStartMessages[battleStartMessageIndex]} ${battleConfig.enemyConfig[enemyRaceIndex].locations[enemyLocationIndex]}, you run across a **${selectedEnemy}** at **${enemyLight} light**. `;
-        message += `At your current light of **${yourLight}** you have a **${chanceToWin}%** chance to win. `;
-
-        message += `${battleConfig.battleCries[battleCryIndex]}. The battle begins.`;
-
-        bot.sendMessage({
-          to: channelId,
-          message
-        });
-
-        let roll = utilities.randomNumberBetween(1, 100);
-        if (roll <= chanceToWin)
-          won = true;
-
-        // battle is happening
-        setTimeout(() => {
-          bot.sendMessage({
-            to: channelId,
-            message: `Pew pew pew!`
-          });
-        }, 3000);
-
-        setTimeout(() => {
-          bot.sendMessage({
-            to: channelId,
-            message: `Bang bang!`
-          });
-        }, 5000);
-
-        setTimeout(() => {
-          bot.sendMessage({
-            to: channelId,
-            message: `...`
-          });
-        }, 7000);
-
-        setTimeout(() => {
-          bot.sendMessage({
-            to: channelId,
-            message: `The dust settles...`
-          });
-        }, 9000);
-
-        let glimmerWonOrLost = 0;
-        // if we won
-        if (won) {
-          glimmerWonOrLost = battleConfig.calculateGlimmerWon(chanceToWin);
-          let randomMessage = battleConfig.successMessages[utilities.randomNumberBetween(0, battleConfig.successMessages.length - 1)];
-          let afterMessage = `After a difficult fight <@${userId}>, ${randomMessage} the **${selectedEnemy}**. You walk away the victor, earning **${glimmerWonOrLost} glimmer** in the process.`;
+          // battle is happening
           setTimeout(() => {
             bot.sendMessage({
               to: channelId,
-              message: afterMessage
+              message: `Pew pew pew!`
             });
-          }, 11000);
-        }
-        else { // we lost
-          glimmerWonOrLost = battleConfig.calculateGlimmerLost(chanceToWin);
-          let randomMessage = battleConfig.defeatMessages[utilities.randomNumberBetween(0, battleConfig.defeatMessages.length - 1)];
-          let afterMessage = `After a difficult fight <@${userId}>, ${randomMessage} the **${selectedEnemy}**. You walk away defeated, losing **${glimmerWonOrLost} glimmer** in the process.`;
+          }, 3000);
+
           setTimeout(() => {
             bot.sendMessage({
               to: channelId,
-              message: afterMessage
+              message: `Bang bang!`
             });
-          }, 11000);
+          }, 5000);
+
+          setTimeout(() => {
+            bot.sendMessage({
+              to: channelId,
+              message: `...`
+            });
+          }, 7000);
+
+          setTimeout(() => {
+            bot.sendMessage({
+              to: channelId,
+              message: `The dust settles...`
+            });
+          }, 9000);
+
+          let glimmerWonOrLost = 0;
+          // if we won
+          if (won) {
+            glimmerWonOrLost = battleConfig.calculateGlimmerWon(chanceToWin, tier);
+            let randomMessage = battleConfig.successMessages[utilities.randomNumberBetween(0, battleConfig.successMessages.length - 1)];
+            let afterMessage = `After a difficult fight <@${userId}>, ${randomMessage} the **${selectedEnemy}**. You walk away the victor, earning **${glimmerWonOrLost} glimmer** in the process.`;
+            setTimeout(() => {
+              bot.sendMessage({
+                to: channelId,
+                message: afterMessage
+              });
+            }, 11000);
+          }
+          else { // we lost
+            glimmerWonOrLost = battleConfig.calculateGlimmerLost(chanceToWin, tier);
+            let randomMessage = battleConfig.defeatMessages[utilities.randomNumberBetween(0, battleConfig.defeatMessages.length - 1)];
+            let afterMessage = `After a difficult fight <@${userId}>, ${randomMessage} the **${selectedEnemy}**. You walk away defeated, losing **${glimmerWonOrLost} glimmer** in the process.`;
+            setTimeout(() => {
+              bot.sendMessage({
+                to: channelId,
+                message: afterMessage
+              });
+            }, 11000);
+          }
+
+          // add a battle cooldown
+          user.update({ battleCooldown: true });
+
+          user.update({ glimmer: snapshot.val().glimmer + (won ? Number(glimmerWonOrLost) : Number(0 - glimmerWonOrLost)) });
+
+          // remove the battle cooldown in minutes
+          setTimeout(() => {
+            user.update({ battleCooldown: false });
+          }, (tier <= 3 ? 180000 : tier * 100000));
         }
-
-        console.log(glimmerWonOrLost);
-        // add a battle cooldown
-        user.update({ battleCooldown: true });
-
-        user.update({ glimmer: snapshot.val().glimmer + (won ? Number(glimmerWonOrLost) : Number(0 - glimmerWonOrLost)) });
-
-        // remove the battle cooldown in minutes
-        setTimeout(() => {
-          user.update({ battleCooldown: false });
-        }, (tier <= 3 ? 180000 : tier * 100000));
+        catch (e) {
+          logger.error(`Error in battle for user: ${userId}: ${e}.`);
+        }
       });
     }
     catch (e) {
