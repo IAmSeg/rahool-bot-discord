@@ -735,7 +735,7 @@ const api = {
           // if we won
           if (won) {
             glimmerWonOrLost = battleConfig.calculateGlimmerWon(chanceToWin, tier);
-            let randomMessage = battleConfig.successMessages[utilities.randomNumberBetween(0, battleConfig.successMessages.length - 1)];
+            let randomMessage = utilities.getRandomFrom(battleConfig.successMessages);
             let afterMessage = `After a difficult fight <@${userId}>, ${randomMessage} the **${selectedEnemy}**. You walk away the victor, earning **${glimmerWonOrLost} glimmer** in the process.`;
             setTimeout(() => {
               bot.sendMessage({
@@ -746,7 +746,7 @@ const api = {
           }
           else { // we lost
             glimmerWonOrLost = battleConfig.calculateGlimmerLost(chanceToWin, tier);
-            let randomMessage = battleConfig.defeatMessages[utilities.randomNumberBetween(0, battleConfig.defeatMessages.length - 1)];
+            let randomMessage = utilities.getRandomFrom(battleConfig.defeatMessages);
             let afterMessage = `After a difficult fight <@${userId}>, ${randomMessage} the **${selectedEnemy}**. You walk away defeated, losing **${glimmerWonOrLost} glimmer** in the process.`;
             const bankRef = this.database.ref(`glimmerBank`);
             bankRef.once('value', bankSnapshot => {
