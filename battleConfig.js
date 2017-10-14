@@ -26,31 +26,31 @@ export default {
 
   enemyLightConfig: [
     {
-      min: .75,
-      max: .95,
+      min: .55,
+      max: .75,
       c1: .2642,
       c2: 19.736
     },
     {
-      min: .95,
-      max: 1.2,
+      min: .75,
+      max: 1,
       c1: .2508,
       c2: 14.749
     },
     {
-      min: 1.1,
+      min: 1.2,
       max: 1.4,
       c1: .2341,
       c2: 9.7659
     },
     {
-      min: 1.3,
+      min: 1.1,
       max: 1.6,
       c1: .2074,
       c2: 7.7926
     },
     {
-      min: 1.4,
+      min: 1.3,
       max: 1.9,
       c1: .180602,
       c2: 5.8194
@@ -149,7 +149,7 @@ export default {
     'You are not scared',
     '*This will be an easy fight*, you think to yourself',
     '*Watch this*, you say to your ghost',
-    'The enemgy seems threatening, but you don\'t want Cayde to make fun of you',
+    'The enemy seems threatening, but you don\'t want Cayde to make fun of you',
     'You are frightened, but you don\'t want to let the Vanguard down.',
     'You are scared out of your mind, but you want to make Shaxx proud'
   ],

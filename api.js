@@ -757,7 +757,7 @@ const api = {
           // remove the battle cooldown in minutes
           setTimeout(() => {
             user.update({ battleCooldown: false });
-          }, (tier <= 3 ? 180000 : tier * 100000));
+          }, 180000);
         }
         catch (e) {
           logger.error(`Error in battle for user: ${userId}: ${e}.`);
