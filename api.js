@@ -413,10 +413,7 @@ const api = {
 
           // remove 100 from the user and add it to the bank
           snapshot.ref.update({ glimmer: snapshot.val().glimmer - 100 });
-          const bankRef = this.database.ref(`glimmerBank`);
-          bankRef.once('value', bankSnapshot => {
-            bankSnapshot.ref.update({ amount: bankSnapshot.val().amount + 100 });
-          });
+          this.addAmountToBank(100);
 
           let currentLight = lightLevelConfig.calculateLightLevel(snapshot.val())
           let engramTier = lightLevelConfig.determineEarnedEngram(currentLight);
@@ -748,10 +745,10 @@ const api = {
             glimmerWonOrLost = battleConfig.calculateGlimmerLost(chanceToWin, tier);
             let randomMessage = utilities.getRandomFrom(battleConfig.defeatMessages);
             let afterMessage = `After a difficult fight <@${userId}>, ${randomMessage} the **${selectedEnemy}**. You walk away defeated, losing **${glimmerWonOrLost} glimmer** in the process.`;
-            const bankRef = this.database.ref(`glimmerBank`);
-            bankRef.once('value', bankSnapshot => {
-              bankSnapshot.ref.update({ amount: bankSnapshot.val().amount + glimmerWonOrLost });
-            });
+
+            // add what they lost to the bank
+            this.addAmountToBank(glimmerWonOrLost);
+
             setTimeout(() => {
               bot.sendMessage({
                 to: channelId,
