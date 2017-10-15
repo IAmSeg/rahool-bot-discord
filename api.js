@@ -83,7 +83,7 @@ const api = {
       ref.once('value', snapshot => {
         bot.sendMessage({
           to: channelId,
-          message: `Current global glimmer bank amount: **${snapshot.val().amount}** glimmer.`
+          message: `Current Global Glimmer Bank amount: **${snapshot.val().amount}** glimmer.`
         })
       });
     }
@@ -119,7 +119,7 @@ const api = {
 
             bot.sendMessage({
               to: channelId,
-              message: `Congratulations <@${userId}>! You guessed the secret number and successfully robbed the global glimmer bank of **${amount}** glimmer!`
+              message: `Congratulations <@${userId}>! You guessed the secret number and successfully robbed the Global Glimmer Bank of **${amount}** glimmer!`
             });
 
             userRef.once('value', snapshot => {
@@ -620,7 +620,7 @@ const api = {
           // tag our specific vendor engrams role
           let message = `${vendorEngramConfig.roleId} `;
           vendors.forEach(vendor => {
-            message += `${vendorEngramConfig.vendors[vendor.vendor]} is currently dropping 300 Power Level gear.\n`;
+            message += `**${vendorEngramConfig.vendors[vendor.vendor]}** is currently dropping 300 Power Level gear.\n`;
           });
 
           // determine when this will likely expire (at the nearest half hour)
@@ -811,7 +811,7 @@ const api = {
                 this.giveLoanTo(loanTo, amount, loaner, userSnapshot.val().username);
                 bot.sendMessage({
                   to: channelId,
-                  message: `<@${loaner}> just loaned ${amount} to <@${loanTo}>. How nice.`
+                  message: `<@${loaner}> just loaned ${amount} to <@${loanTo}>, financed by the Global Glimmer Bank.`
                 });
               }
               else {
@@ -862,6 +862,8 @@ const api = {
       userRef.once('value', snapshot => {
         if (snapshot.val()) {
           let oweTo = {};
+          if (snapshot.val().oweTo)
+            oweTo = snapshot.val().oweTo;
           if (snapshot.val().oweTo && snapshot.val().oweTo[loaner])
             oweTo[loaner] = { name: loanerName, amount: snapshot.val().oweTo[loaner].amount + amount };
           else 
