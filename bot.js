@@ -200,7 +200,7 @@ bot.on('message', function (user, userId, channelId, message, evt) {
           else if (isNaN(amount)) {
             bot.sendMessage({
               to: channelId,
-              message: `<@${userId}> ${amount} isn't a number, dumbass.`
+              message: `<@${userId}> that isn't a number, dumbass.`
             });
           }
           else 
@@ -243,7 +243,7 @@ bot.on('message', function (user, userId, channelId, message, evt) {
           else if (isNaN(amount)) {
             bot.sendMessage({
               to: channelId,
-              message: `<@${userId}> ${amount} isn't a number, dumbass.`
+              message: `<@${userId}> that isn't a number, dumbass.`
             });
           }
           else 
@@ -286,7 +286,7 @@ bot.on('message', function (user, userId, channelId, message, evt) {
         else if (isNaN(amount)) {
           bot.sendMessage({
             to: channelId,
-            message: `<@${userId}> ${amount} isn't a number, dumbass.`
+            message: `<@${userId}> that isn't a number, dumbass.`
           });
         }
         else 
