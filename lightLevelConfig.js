@@ -115,7 +115,7 @@ const lightLevelConfig = {
     let inc = Math.floor(utilities.randomNumberBetween(engramTier.minInc, engramTier.maxInc));
     let newLight = currentLight + inc;
     // dont let engrams go over their max, unless we are at or above 96.667% to max light
-    if (newLight > (engramTier.max * this.maxLight) && currentLight < (this.maxLight * 0.9667))
+    if (newLight > Math.floor(engramTier.max * this.maxLight) && currentLight < Math.floor(this.maxLight * 0.9667))
       newLight = (engramTier.max * this.maxLight);
 
     return Math.floor(newLight > this.maxLight ? this.maxLight : newLight);
