@@ -954,20 +954,21 @@ const api = {
           }
           else {
             // update the users debt
+            // user pays the full amount
             let oweTo = collectSnapshot.val().oweTo;
             oweTo[userId].amount -= amount;
             collectRef.update({ glimmer: collectSnapshot.val().glimmer - amount, oweTo });
 
             // bank takes its share
             let bankShare = Math.floor((amount * .2) > 1 ? (amount * .2) : 1);
-            let newAmount = amount - bankShare;
+            let collectedAmount = amount - bankShare;
             this.addAmountToBank(bankShare);
 
             // repay the user
-            this.addGlimerToUser(userId, newAmount);
+            this.addGlimerToUser(userId, collectedAmount);
             bot.sendMessage({
               to: channelId,
-              message: `<@${userId}> you collected **${amount}** glimmer from <@${collectFromId}>. The Global Glimmer Bank took its collection fee at **${bankShare}** glimmer.`
+              message: `<@${userId}> you collected **${collectedAmount}** glimmer from <@${collectFromId}>. The Global Glimmer Bank took its collection fee at **${bankShare}** glimmer.`
             });
           }
         }
@@ -1006,18 +1007,20 @@ const api = {
             // update the users debt
             let oweTo = userSnapshot.val().oweTo;
             oweTo[repayToId].amount -= amount;
-            userRef.update({ glimmer: userSnapshot.val().glimmer - amount, oweTo });
 
-            // bank pays interest
+            // bank pays 20% of repayments, and adds 20% interest
             let bankShare = Math.floor((amount * .2) > 1 ? (amount * .2) : 1);
-            let newAmount = amount + bankShare;
-            this.addAmountToBank(0 - bankShare);
+            let interest = bankShare;
+            let payAmount = amount - bankShare;
+            this.addAmountToBank(0 - bankShare - interest);
+            userRef.update({ glimmer: userSnapshot.val().glimmer - payAmount, oweTo });
+
 
             // repay the user
-            this.addGlimerToUser(repayToId, newAmount);
+            this.addGlimerToUser(repayToId, amount + interest);
             bot.sendMessage({
               to: channelId,
-              message: `<@${userId}> you repayed **${amount}** glimmer to ${userSnapshot.val().oweTo[repayToId].name}. The Global Glimmer Bank pays the interest for you at **${bankShare}** glimmer.`
+              message: `<@${userId}> you repayed **${payAmount}** glimmer to ${userSnapshot.val().oweTo[repayToId].name}. The Global Glimmer Bank payed **${bankShare}** glimmer of your debt for you, and added **${interest}** to the repayment.`
             });
           }
         }
