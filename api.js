@@ -967,7 +967,7 @@ const api = {
             this.addGlimerToUser(userId, newAmount);
             bot.sendMessage({
               to: channelId,
-              message: `<@${userId}> you collected **${amount}** glimmer from <@${collectFromId}>. The Global Glimmer Bank took its share at **${bankShare}** glimmer.`
+              message: `<@${userId}> you collected **${amount}** glimmer from <@${collectFromId}>. The Global Glimmer Bank took its collection fee at **${bankShare}** glimmer.`
             });
           }
         }
