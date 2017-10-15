@@ -1020,7 +1020,7 @@ const api = {
             this.addGlimerToUser(repayToId, amount + interest);
             bot.sendMessage({
               to: channelId,
-              message: `<@${userId}> you repayed **${payAmount}** glimmer to ${userSnapshot.val().oweTo[repayToId].name}. The Global Glimmer Bank payed **${bankShare}** glimmer of your debt for you, and added **${interest}** to the repayment.`
+              message: `<@${userId}> you repayed **${payAmount}** glimmer to ${userSnapshot.val().oweTo[repayToId].name}. The Global Glimmer Bank payed **${bankShare}** glimmer of your debt for you, and added **${interest}** glimmer interest to the repayment.`
             });
           }
         }
