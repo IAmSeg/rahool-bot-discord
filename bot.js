@@ -201,26 +201,62 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       }
     }
 
-    //collect loan
-    // if (message.split(' ')[0] === '!collect') {
-    //   if (message.split(' ').length < 3) {
-    //     bot.sendMessage({
-    //       to: channelId,
-    //       message: `<@${userId}> please specify an amount and someone to collect from. **!collect amount @user**.`
-    //     })
-    //   }
-    //   let amount = Number(message.split(' ')[1]);
-    //   let collectFrom = message.split(' ')[2];
-    //   let collectFromId = collectFrom.substring(3, collectFrom.length - 1);
-    //   if (isNaN(amount)) {
-    //     bot.sendMessage({
-    //       to: channelId,
-    //       message: `<@${userId}> ${amount} isn't a number, dumbass.`
-    //     });
-    //   }
-    //   else 
-    //     api.collect(userId, amount, collectFromId, bot, channelId);
-    // }
+    // repay loan
+    if (message.split(' ')[0] === '!repay') {
+      if (message.split(' ').length < 3) {
+        bot.sendMessage({
+          to: channelId,
+          message: `<@${userId}> please specify an amount and someone to repay. **!repay amount @user**.`
+        })
+      }
+      else {
+        let amount = Number(message.split(' ')[1]);
+        let repayTo = message.split(' ')[2];
+
+        // extract the repayTo id from the <@id> string
+        // sometimes there's a random ! at the beginning also
+        let repayToId = repayTo.substring(2, repayTo.length - 1);
+        if (repayToId[0] == '!') 
+          repayToId = repayToId.substring(1, repayTo.length - 1);
+
+        if (isNaN(repayToId)) {
+          bot.sendMessage({
+            to: channelId,
+            message: `<@${userId}> that user doesn't exist.`
+          });
+        }
+        else if (isNaN(amount)) {
+          bot.sendMessage({
+            to: channelId,
+            message: `<@${userId}> ${amount} isn't a number, dumbass.`
+          });
+        }
+        else 
+          api.repay(userId, amount, repayToId, bot, channelId);
+      }
+    }
+
+    // collect loan
+    if (message.split(' ')[0] === '!collect') {
+      if (message.split(' ').length < 3) {
+        bot.sendMessage({
+          to: channelId,
+          message: `<@${userId}> please specify an amount and someone to collect from. **!collect amount @user**.`
+        })
+      }
+      let amount = Number(message.split(' ')[1]);
+      let collectFrom = message.split(' ')[2];
+      let collectFromId = collectFrom.substring(3, collectFrom.length - 1);
+      if (isNaN(amount)) {
+        bot.sendMessage({
+          to: channelId,
+          message: `<@${userId}> ${amount} isn't a number, dumbass.`
+        });
+      }
+      else 
+        api.collect(userId, amount, collectFromId, bot, channelId);
+    }
+
 
     // check who you owe to
     if (message === '!debt') {

@@ -59,6 +59,26 @@ const api = {
     }
   },
 
+  // @summary - gives glimmer to a user
+  // @param userId - user to give glimmer to
+  // @param amount
+  addGlimerToUser(userId, amount) {
+    const user = this.database.ref(`users/${userId}`);
+    user.once('value', snapshot => {
+      user.update({ glimmer: snapshot.val().glimmer + amount });
+    });
+  },
+
+  // @summary - takes glimmer from a user
+  // @param userId - user to take glimmer from
+  // @param amount
+  takeGlimerFromUser(userId, amount) {
+    const user = this.database.ref(`users/${userId}`);
+    user.once('value', snapshot => {
+      user.update({ glimmer: snapshot.val().glimmer - amount });
+    });
+  },
+
   /// @summary - adds an amount of glimmer to the global glimmer bank
   /// @param amount - amount to add
   addAmountToBank(amount) {
@@ -811,13 +831,13 @@ const api = {
                 this.giveLoanTo(loanTo, amount, loaner, userSnapshot.val().username);
                 bot.sendMessage({
                   to: channelId,
-                  message: `<@${loaner}> just loaned ${amount} to <@${loanTo}>, financed by the Global Glimmer Bank.`
+                  message: `<@${loaner}> just loaned ${amount} to <@${loanTo}>, mediated by the Global Glimmer Bank.`
                 });
               }
               else {
                 bot.sendMessage({
                   to: channelId,
-                  message: `<@${loaner}> that user doesn't exist, guess we'll give that glimmer to the bank! :)`
+                  message: `<@${loaner}> that user doesn't exist, guess we'll give that glimmer to the Global Glimmer Bank! :)`
                 });
                 this.takeLoanFrom(loaner, amount);
                 this.addAmountToBank(amount);
@@ -877,17 +897,7 @@ const api = {
       logger.error(`Error in giveLoanTo for ${loanTo} for amount: ${amount}: ${e}`);
     }
   },
-
-  // @summary adds a loan to a user
-  // @param userId - user to collect from
-  // @param amount - amount to collect
-  // @param collectFromId - person to collect from
-  // @param bot - this bot
-  // @param channelId - channel to write to
-  collect(userId, amount, collectFromId, bot, channelId) {
-
-  },
-
+ 
   // @summary checks debt for a user
   // @param userId - user to check debt for
   // @param bot - this bot
@@ -924,6 +934,56 @@ const api = {
     }
   },
 
+  // @summary adds a loan to a user
+  // @param userId - user to collect from
+  // @param amount - amount to collect
+  // @param collectFromId - person to collect from
+  // @param bot - this bot
+  // @param channelId - channel to write to
+  collect(userId, amount, collectFromId, bot, channelId) {
+    try {
+      const collectRef = this.database.ref(`users/${collectFromId}`);
+        collectRef.once('value', collectSnapshot => {
+        if (collectSnapshot.val() && collectSnapshot.val().oweTo && collectSnapshot.val().oweTo[userId]) {
+          // if they dont owe them that much
+          if (collectSnapshot.val().oweTo[userId].amount < amount) {
+            bot.sendMessage({
+              to: channelId,
+              message: `<@${userId}> they don't owe you that much.`
+            });
+          }
+          else {
+            // update the users debt
+            let oweTo = collectSnapshot.val().oweTo;
+            oweTo[userId].amount -= amount;
+            collectRef.update({ glimmer: collectSnapshot.val().glimmer - amount, oweTo });
+
+            // bank takes its share
+            let bankShare = Math.floor((amount * .2) > 1 ? (amount * .2) : 1);
+            let newAmount = amount - bankShare;
+            this.addAmountToBank(bankShare);
+
+            // repay the user
+            this.addGlimerToUser(userId, newAmount);
+            bot.sendMessage({
+              to: channelId,
+              message: `<@${userId}> you collected **${amount}** glimmer from <@${collectFromId}>. The Global Glimmer Bank took its share at **${bankShare}** glimmer.`
+            });
+          }
+        }
+        else {
+          bot.sendMessage({
+            to: channelId,
+            message: `<@${userId}> they don't owe you anything.`
+          });
+        }
+      });
+    }
+    catch (e) {
+      logger.error(`Error in collect for ${userId} to ${collectFromId} for amount: ${amount}.`);
+    }
+  },
+
   // @summary repay debt to a user
   // @param userId - user who is repaying debt
   // @param amount - amount to repay
@@ -931,7 +991,47 @@ const api = {
   // @param bot - this bot
   // @param channelId - channel to write to
   repay(userId, amount, repayToId, bot, channelId) {
+    try {
+      const userRef = this.database.ref(`users/${userId}`);
+      userRef.once('value', userSnapshot => {
+        if (userSnapshot.val() && userSnapshot.val().oweTo && userSnapshot.val().oweTo[repayToId]) {
+          // if they dont owe them that much
+          if (userSnapshot.val().oweTo[repayToId].amount < amount) {
+            bot.sendMessage({
+              to: channelId,
+              message: `<@${userId}> you don't owe ${userSnapshot.val().oweTo[repayToId].name} that much.`
+            });
+          }
+          else {
+            // update the users debt
+            let oweTo = userSnapshot.val().oweTo;
+            oweTo[repayToId].amount -= amount;
+            userRef.update({ glimmer: userSnapshot.val().glimmer - amount, oweTo });
 
+            // bank takes its share
+            let bankShare = Math.floor((amount * .2) > 1 ? (amount * .2) : 1);
+            let newAmount = amount - bankShare;
+            this.addAmountToBank(bankShare);
+
+            // repay the user
+            this.addGlimerToUser(repayToId, newAmount);
+            bot.sendMessage({
+              to: channelId,
+              message: `<@${userId}> you repayed **${amount}** glimmer to ${userSnapshot.val().oweTo[repayToId].name}. The Global Glimmer Bank took its share at **${bankShare}** glimmer.`
+            });
+          }
+        }
+        else {
+          bot.sendMessage({
+            to: channelId,
+            message: `<@${userId}> you don't owe them anything.`
+          });
+        }
+      });
+    }
+    catch (e) {
+      logger.error(`Error in repay for ${userId} to ${repayToId} for amount: ${amount}.`);
+    }
   }
 }
 
