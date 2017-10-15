@@ -1008,16 +1008,16 @@ const api = {
             oweTo[repayToId].amount -= amount;
             userRef.update({ glimmer: userSnapshot.val().glimmer - amount, oweTo });
 
-            // bank takes its share
+            // bank pays interest
             let bankShare = Math.floor((amount * .2) > 1 ? (amount * .2) : 1);
-            let newAmount = amount - bankShare;
-            this.addAmountToBank(bankShare);
+            let newAmount = amount + bankShare;
+            this.addAmountToBank(0 - bankShare);
 
             // repay the user
             this.addGlimerToUser(repayToId, newAmount);
             bot.sendMessage({
               to: channelId,
-              message: `<@${userId}> you repayed **${amount}** glimmer to ${userSnapshot.val().oweTo[repayToId].name}. The Global Glimmer Bank took its share at **${bankShare}** glimmer.`
+              message: `<@${userId}> you repayed **${amount}** glimmer to ${userSnapshot.val().oweTo[repayToId].name}. The Global Glimmer Bank pays the interest for you at **${bankShare}** glimmer.`
             });
           }
         }

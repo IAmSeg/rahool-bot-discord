@@ -176,28 +176,36 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       }
       else {
         let amount = Number(message.split(' ')[1]);
-        let loanTo = message.split(' ')[2];
-
-        // extract the loanTo id from the <@id> string
-        // sometimes there's a random ! at the beginning also
-        let loanToId = loanTo.substring(2, loanTo.length - 1);
-        if (loanToId[0] == '!') 
-          loanToId = loanToId.substring(1, loanTo.length - 1);
-
-        if (isNaN(loanToId)) {
+        if (amount < 1) {
           bot.sendMessage({
             to: channelId,
-            message: `<@${userId}> that user doesn't exist.`
+            message: `<@${userId}> you can't loan less than 1 glimmer.`
           });
         }
-        else if (isNaN(amount)) {
-          bot.sendMessage({
-            to: channelId,
-            message: `<@${userId}> ${amount} isn't a number, dumbass.`
-          });
+        else {
+          let loanTo = message.split(' ')[2];
+
+          // extract the loanTo id from the <@id> string
+          // sometimes there's a random ! at the beginning also
+          let loanToId = loanTo.substring(2, loanTo.length - 1);
+          if (loanToId[0] == '!') 
+            loanToId = loanToId.substring(1, loanTo.length - 1);
+
+          if (isNaN(loanToId)) {
+            bot.sendMessage({
+              to: channelId,
+              message: `<@${userId}> that user doesn't exist.`
+            });
+          }
+          else if (isNaN(amount)) {
+            bot.sendMessage({
+              to: channelId,
+              message: `<@${userId}> ${amount} isn't a number, dumbass.`
+            });
+          }
+          else 
+            api.loan(userId, amount, loanToId, bot, channelId);
         }
-        else 
-          api.loan(userId, amount, loanToId, bot, channelId);
       }
     }
 
@@ -211,28 +219,36 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       }
       else {
         let amount = Number(message.split(' ')[1]);
-        let repayTo = message.split(' ')[2];
-
-        // extract the repayTo id from the <@id> string
-        // sometimes there's a random ! at the beginning also
-        let repayToId = repayTo.substring(2, repayTo.length - 1);
-        if (repayToId[0] == '!') 
-          repayToId = repayToId.substring(1, repayTo.length - 1);
-
-        if (isNaN(repayToId)) {
+        if (amount < 1) {
           bot.sendMessage({
             to: channelId,
-            message: `<@${userId}> that user doesn't exist.`
+            message: `<@${userId}> you can't repay less than 1 glimmer.`
           });
         }
-        else if (isNaN(amount)) {
-          bot.sendMessage({
-            to: channelId,
-            message: `<@${userId}> ${amount} isn't a number, dumbass.`
-          });
+        else {
+          let repayTo = message.split(' ')[2];
+
+          // extract the repayTo id from the <@id> string
+          // sometimes there's a random ! at the beginning also
+          let repayToId = repayTo.substring(2, repayTo.length - 1);
+          if (repayToId[0] == '!') 
+            repayToId = repayToId.substring(1, repayTo.length - 1);
+
+          if (isNaN(repayToId)) {
+            bot.sendMessage({
+              to: channelId,
+              message: `<@${userId}> that user doesn't exist.`
+            });
+          }
+          else if (isNaN(amount)) {
+            bot.sendMessage({
+              to: channelId,
+              message: `<@${userId}> ${amount} isn't a number, dumbass.`
+            });
+          }
+          else 
+            api.repay(userId, amount, repayToId, bot, channelId);
         }
-        else 
-          api.repay(userId, amount, repayToId, bot, channelId);
       }
     }
 
@@ -245,16 +261,37 @@ bot.on('message', function (user, userId, channelId, message, evt) {
         })
       }
       let amount = Number(message.split(' ')[1]);
-      let collectFrom = message.split(' ')[2];
-      let collectFromId = collectFrom.substring(3, collectFrom.length - 1);
-      if (isNaN(amount)) {
+
+      if (amount < 1) {
         bot.sendMessage({
           to: channelId,
-          message: `<@${userId}> ${amount} isn't a number, dumbass.`
+          message: `<@${userId}> you can't collect less than 1 glimmer.`
         });
       }
-      else 
-        api.collect(userId, amount, collectFromId, bot, channelId);
+      else {
+        let collectFrom = message.split(' ')[2];
+
+        // extract the collectFrom id from the <@id> string
+        // sometimes there's a random ! at the beginning also
+        let collectFromId = collectFrom.substring(2, collectFrom.length - 1);
+        if (collectFromId[0] == '!') 
+          collectFromId = collectFromId.substring(1, collectFrom.length - 1);
+
+        if (isNaN(collectFromId)) {
+          bot.sendMessage({
+            to: channelId,
+            message: `<@${userId}> that user doesn't exist.`
+          });
+        }
+        else if (isNaN(amount)) {
+          bot.sendMessage({
+            to: channelId,
+            message: `<@${userId}> ${amount} isn't a number, dumbass.`
+          });
+        }
+        else 
+          api.collect(userId, amount, collectFromId, bot, channelId);
+      }
     }
 
 
