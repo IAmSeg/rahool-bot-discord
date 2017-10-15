@@ -1004,24 +1004,32 @@ const api = {
             });
           }
           else {
-            // update the users debt
-            let oweTo = userSnapshot.val().oweTo;
-            oweTo[repayToId].amount -= amount;
+            if (userSnapshot.val().glimmer < amount) {
+              bot.sendMessage({
+                to: channelId,
+                message: `<@${userId}> you don't have enough glimmer to repay that much.`
+              });
+            }
+            else {
+              // update the users debt
+              let oweTo = userSnapshot.val().oweTo;
+              oweTo[repayToId].amount -= amount;
 
-            // bank pays 20% of repayments, and adds 20% interest
-            let bankShare = Math.floor((amount * .2) > 1 ? (amount * .2) : 1);
-            let interest = bankShare;
-            let payAmount = amount - bankShare;
-            this.addAmountToBank(0 - bankShare - interest);
-            userRef.update({ glimmer: userSnapshot.val().glimmer - payAmount, oweTo });
+              // bank pays 20% of repayments, and adds 20% interest
+              let bankShare = Math.floor((amount * .2) > 1 ? (amount * .2) : 1);
+              let interest = bankShare;
+              let payAmount = amount - bankShare;
+              this.addAmountToBank(0 - bankShare - interest);
+              userRef.update({ glimmer: userSnapshot.val().glimmer - payAmount, oweTo });
 
 
-            // repay the user
-            this.addGlimerToUser(repayToId, amount + interest);
-            bot.sendMessage({
-              to: channelId,
-              message: `<@${userId}> you repayed **${payAmount}** glimmer to ${userSnapshot.val().oweTo[repayToId].name}. The Global Glimmer Bank payed **${bankShare}** glimmer of your debt for you, and added **${interest}** glimmer interest to the repayment.`
-            });
+              // repay the user
+              this.addGlimerToUser(repayToId, amount + interest);
+              bot.sendMessage({
+                to: channelId,
+                message: `<@${userId}> you repayed **${payAmount}** glimmer to ${userSnapshot.val().oweTo[repayToId].name}. The Global Glimmer Bank payed **${bankShare}** glimmer of your debt for you, and added **${interest}** glimmer interest to the repayment.`
+              });
+            }
           }
         }
         else {
