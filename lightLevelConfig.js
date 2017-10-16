@@ -33,7 +33,7 @@ const lightLevelConfig = {
     const chestLight = user.itemLightLevels.chestLight * this.chestMult;
     const legsLight = user.itemLightLevels.legsLight * this.legsMult;
     const classLight = user.itemLightLevels.classLight * this.classMult;
-    return Math.floor(kineticLight + energyLight + powerLight + helmetLight + gauntletsLight + chestLight + legsLight + classLight);
+    return Math.round(kineticLight + energyLight + powerLight + helmetLight + gauntletsLight + chestLight + legsLight + classLight);
   },
 
   rarityTiers: [
