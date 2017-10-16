@@ -648,39 +648,44 @@ const api = {
   get300Vendors(bot, channelId) {
     try {
       request(`${vendorEngramConfig.api}/getVendorDrops?key=${vendorEngramConfig.key}`, (error, response, body) => {
-        // turn body into an array and filter to only vendors who have verified 300 drops
-        let vendors = JSON.parse(body).filter(vendor => vendor.type === 3 && vendor.verified === 1);
+        try {
+          // turn body into an array and filter to only vendors who have verified 300 drops
+          let vendors = JSON.parse(body).filter(vendor => vendor.type === 3 && vendor.verified === 1);
 
-        // if there are any dropping 300 level gear
-        if (vendors.length > 0) {
-          // tag our specific vendor engrams role
-          let message = `${vendorEngramConfig.roleId} `;
-          vendors.forEach(vendor => {
-            message += `**${vendorEngramConfig.vendors[vendor.vendor]}** is currently dropping 300 Power Level gear.\n`;
-          });
+          // if there are any dropping 300 level gear
+          if (vendors.length > 0) {
+            // tag our specific vendor engrams role
+            let message = `${vendorEngramConfig.roleId} `;
+            vendors.forEach(vendor => {
+              message += `**${vendorEngramConfig.vendors[vendor.vendor]}** is currently dropping 300 Power Level gear.\n`;
+            });
 
-          // determine when this will likely expire (at the nearest half hour)
-          message += `This will **likely** change in `;
-          let thisMinute = moment().minute();
-          let expireMinutes;
-          if (thisMinute < 30) 
-            expireMinutes = 30 - thisMinute;
-          else
-            expireMinutes = 60 - thisMinute;
+            // determine when this will likely expire (at the nearest half hour)
+            message += `This will **likely** change in `;
+            let thisMinute = moment().minute();
+            let expireMinutes;
+            if (thisMinute < 30) 
+              expireMinutes = 30 - thisMinute;
+            else
+              expireMinutes = 60 - thisMinute;
 
-          message += `**${expireMinutes} minutes**.`
-          // send the message and set a timeout to delete the message later
-          bot.sendMessage({
-            to: channelId,
-            message
-          }, (error, response) => {
-            setTimeout(() => {
-              bot.deleteMessage({
-                channelID: response.channel_id,
-                messageID: response.id
-              });
-            }, expireMinutes * 1000 * 60);
-          });
+            message += `**${expireMinutes} minutes**.`
+            // send the message and set a timeout to delete the message later
+            bot.sendMessage({
+              to: channelId,
+              message
+            }, (error, response) => {
+              setTimeout(() => {
+                bot.deleteMessage({
+                  channelID: response.channel_id,
+                  messageID: response.id
+                });
+              }, expireMinutes * 1000 * 60);
+            });
+          }
+        } 
+        catch (e) {
+          logger.error(`Error parsing JSON response from vendor engrams api: ${e}`);
         }
       });
     }
