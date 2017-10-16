@@ -338,10 +338,25 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       });
     }
 
+    if (message === '!glimmereconomy') {
+      let message = `Glimmer is a programmable currency which is kept track of in the Glimmer Mainframe (like a ledger to a crypto currency). Each time you type a message of at least a certain length, you "mine" or "farm" glimmer and it is distributed by the Glimmer Mainframe.\n`;
+      let message += `Half of the farmed glimmer goes to you, half goes to the Global Glimmer Bank.\n`
+      let message += `The Global Glimmer Bank helps you with transactions and keeps track of loans/debts/collections/repayments. It will also pay you for certain endeavors, such as eliminating threats to our people by winning battles.\n`
+      let message += `Glimmer can be used to buy engrams, loaned, gambled, or donated to the Glimmer Mainframe to help with defragmentation repairs.\n`;
+      let message += `With each glimmer transaction, the Glimmer Mainframe becomes slightly more fragmented, based on the amount of glimmer being transacted. If the Mainframe hits 100% fragmentation, the economy will collapse and all glimmer will be lost.\n`;
+      let message += `The only way to generate new glimmer is to farm it, or to win it from gambling (gambling is an advanced mining/farming protocol that can generate glimmer extremely fast).\n`;
+      let message += `The only way to remove glimmer from the economy is to use it to repair fragmentation within the Glimmer Mainframe.\n`;
+      bot.sendMessage({
+        to: channelId,
+        message
+      });
+    }
+
     // list all commands
     if (message === '!commands') {
       let message = `Current available commands: \n`;
       message += `**!glimmer** - Check your current glimmer.\n`;
+      message += `**!glimmereconomy** - More information about how the glimmer economy works.\n`;
       message += `**!buyengram**- Buy an engram from Rahool for 100 glimmer.\n`;
       message += `**!light** - Check your current light level.\n`;
       message += `**!lightrank** - Check the light level of everyone in the server, ranked highest to lowest.\n`;

@@ -106,6 +106,7 @@ export default class Api {
   updateGlimmer(userId, username) {
     try {
       this.addGlimmerToUser(userId, 5);
+      this.addAmountToBank(5);
     }
     catch (e) {
       logger.error(`Error in updateGlimmer for ${userId}: ${e}.`);

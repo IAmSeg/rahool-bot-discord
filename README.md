@@ -12,6 +12,7 @@ if you'd like to run it yourself with your own API keys.
 ### Current functionality
 
 * **!glimmer** - Check your current glimmer
+* **!glimmereconomy** - More information about how the glimmer economy works
 * **!buyengram**- Buy an engram from Rahool for 100 glimmer
 * **!light** - Check your current light level
 * **!lightrank** - Check the light level of everyone in the server, ranked highest to lowest
