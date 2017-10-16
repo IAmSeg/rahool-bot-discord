@@ -105,19 +105,7 @@ export default class Api {
   // @username - human friendly username of the user
   updateGlimmer(userId, username) {
     try {
-      this.fragmentGlimmerMainframe(5);
-      // add 5 to the bank
-      this.addAmountToBank(5);
-      const user = this.database.ref(`users/${userId}`);
-      user.once('value', snapshot => {
-        try {
-          if (snapshot.val())
-            snapshot.ref.update({ glimmer: snapshot.val().glimmer + 5, username });
-          else
-            this.writeData(userId, username);
-        }
-        catch (e) { logger.error(`Error updating glimmer for user: ${userId}: ${e}`); }
-      });
+      this.addGlimmerToUser(userId, 5);
     }
     catch (e) {
       logger.error(`Error in updateGlimmer for ${userId}: ${e}.`);
@@ -274,11 +262,11 @@ export default class Api {
       fragRef.once('value', s => {
         try {
           fragRef.update({ fragmentationRate: s.val().fragmentationRate + fragmentationAmount, transactionCount: s.val().transactionCount + 1 });
+          this.checkMainframeFragmentation();
         }
         catch (e) { logger.error(`Error fragmenting glimmer mainframe: ${amount}: ${e}`); }
       });
 
-      this.checkMainframeFragmentation();
     } 
     catch (e) {
       logger.error(`Error in fragmentGlimmerMainframe for amount ${amount}: ${e}`);
@@ -328,10 +316,6 @@ export default class Api {
         try {
           // mainframe crash
           if (s.val().fragmentationRate >= 100) {
-            // wipe users
-            const users = this.database.ref(`users`); 
-            users.update({ glimmer: 0, oweTo: false, loans: false });
-
             // wipe mainframe
             mainRef.update({ fragmentationRate: 0, transactionCount: 0, crashes: s.val().crashes + 1 });
 
@@ -339,13 +323,24 @@ export default class Api {
             const bank = this.database.ref(`glimmerBank`);
             bank.update({ amount: 0 });
 
-            let message = `***********************\n`;
-            message += `**MAINFRAME ERROR**. FRAGMENTATION RATE AT 100%. ALL GLIMMER HAS BEEN LOST.\n`;
-            message += `MAINFRAME CRASHES: **${s.val().crashes}**`;
-            message += `***********************`;
+            // wipe users
+            const users = this.database.ref('users/');
+            users.once('value', snapshot => {
+              try {
+                const snapVal = snapshot.val();
+                const userList = [];
+                let message = `Light ranks:\n`;
+                for (let user in snapVal) {
+                  let userRef = this.database.ref(`users/${snapVal[user].id}`);
+                  userRef.update({ glimmer: 0, oweTo: false, loans: false });
+                }
+              }
+              catch (e) { logger.error(`Error wiping users in checkMainframeFragmentation: ${e}`); }
+            });
+
             this.bot.sendMessage({
               to: this.channelId,
-              message
+              message: `**MAINFRAME ERROR**. FRAGMENTATION RATE AT 100%. ALL GLIMMER HAS BEEN LOST.\n`
             });
           }
         }
