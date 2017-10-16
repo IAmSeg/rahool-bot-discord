@@ -291,6 +291,35 @@ bot.on('message', function (user, userId, channelId, message, evt) {
     if (message === '!frag') {
       api.getFragmentationRate();
     }
+
+    if (message.split(' ')[0] === '!defrag') {
+      if (message.split(' ').length < 2) {
+        bot.sendMessage({
+          to: channelId,
+          message: `<@${userId}> please specify an amount to donate to defragmentation repairs. **!defrag AMOUNT**`
+        });
+      }
+      else {
+        let amount = Number(message.split(' ')[1]);
+        if (isNaN(amount)) {
+          bot.sendMessage({
+            to: channelId,
+            message: `<@${userId}> that isn't a number. **!defrag AMOUNT**`
+          });
+        }
+        else 
+          api.defragGlimmerMainframe(userId, amount);
+      }
+    }
+
+    if (message === '!aboutfrag') {
+      let message = `Glimmer is a programmable currency which is kept track of in the Glimmer Mainframe. With each glimmer transaction, the Mainframe hardware fragments, and the volatility of the glimmer economy rises. If the Mainframe reaches 100% fragmentation, it will crash, `;
+      message += `destroying the glimmer economy and wiping all glimmer from the system. Larger transactions fragment the Mainframe faster. Type **!frag** to check the current fragmentation rate.`;
+      bot.sendMessage({
+        to: channelId,
+        message
+      });
+    }
   }
   catch (e) {
     logger.error(`Error in general bot commands: ${e}.`);

@@ -252,7 +252,7 @@ export default class Api {
   fragmentGlimmerMainframe(amount) {
     try {
       const oneGlimmerPercentage = .0000001;
-      let fragmentationAmount = Math.abs(amount) * oneGlimmerPercentage;
+      let fragmentationAmount = Math.abs(amount) * oneGlimmerPercentage * 100;
       const fragRef = this.database.ref(`glimmerMainframe`);
       fragRef.once('value', s => {
         fragRef.update({ fragmentationRate: s.val().fragmentationRate + fragmentationAmount, transactionCount: s.val().transactionCount + 1 });
@@ -265,6 +265,27 @@ export default class Api {
     }
   }
 
+  // @summary - defragments the glimmer mainframe based on the amount
+  // @amount - amount being donated to defrag repairs
+  defragGlimmerMainframe(userId, amount) {
+    try {
+      const oneGlimmerPercentage = .0000001;
+      let fragmentationAmount = Math.abs(amount) * oneGlimmerPercentage * 100;
+      const fragRef = this.database.ref(`glimmerMainframe`);
+      fragRef.once('value', s => {
+        fragRef.update({ fragmentationRate: s.val().fragmentationRate - fragmentationAmount });
+      });
+
+      this.bot.sendMessage({
+        to: this.channelId,
+        message: `<@${userId}> the Global Glimmer Bank thanks you for your donation to defragmentation repairs. Your donation helped defragment the Glimmer Mainframe by **${fragmentationAmount}%**.`
+      });
+    } 
+    catch (e) {
+      logger.error(`Error in defragGlimmerMainframe for amount ${amount}: ${e}`);
+    }
+  }
+
   // @summary - checks the current glimmer mainframe fragmentation rate, and wipes everything if it is at 100%
   checkMainframeFragmentation() {
     try {
@@ -274,7 +295,7 @@ export default class Api {
         if (s.val().fragmentationRate >= 100) {
           // wipe users
           const users = this.database.ref(`users`); 
-          users.update({ glimmer: 0 });
+          users.update({ glimmer: 0 , oweTo: false });
 
           // wipe mainframe
           mainRef.update({ fragmentationRate: 0, transactionCount: 0 });
@@ -302,7 +323,7 @@ export default class Api {
     try {
       const fragRef = this.database.ref(`glimmerMainframe`);
       fragRef.once('value', s => {
-        let message = `Current Glimmer Mainframe fragmentation rate: **${s.val().fragmentationRate}%**. Current transaction count: **${s.val().transactionCount}**.`;
+        let message = `Current Glimmer Mainframe fragmentation rate: **${s.val().fragmentationRate.toFixed(7)}%**. Current transaction count: **${s.val().transactionCount}**.`;
         this.bot.sendMessage({
           to: this.channelId,
           message
@@ -1074,7 +1095,6 @@ export default class Api {
   // @param loanerName - the name of the user who loaned them glimmer
   giveLoanTo(loanTo, amount, loaner, loanerName) {
     try {
-      // make sure the user has that amount
       const userRef = this.database.ref(`users/${loanTo}`);
       userRef.once('value', snapshot => {
         if (snapshot.val()) {
@@ -1087,8 +1107,25 @@ export default class Api {
             oweTo[loaner] = { name: loanerName, amount };
 
           userRef.update({ glimmer: snapshot.val().glimmer + amount, oweTo });
+
+          // // update the loaners loans
+          // const loanerRef = this.database.ref(`users/${loaner}`);
+          // loanerRef.once('value', s => {
+          //   if (s.val()) {
+          //     let loans = {};
+          //     if (s.val().loans)
+          //       loans = snapshot.val().loans;
+          //     if (s.val().loans && s.val().loans[loanTo])
+          //       loans[loanTo] = { name: s.val().name, amount: s.val().loans[loanTo].amount + amount };
+          //     else 
+          //      loans[loanTo] = { name: s.val().name, amount };
+
+          //     loanerRef.update({ loans });
+          //   }
+          // });
         }
       });
+
     }
     catch (e) {
       logger.error(`Error in giveLoanTo for ${loanTo} for amount: ${amount}: ${e}`);
