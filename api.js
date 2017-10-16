@@ -1113,6 +1113,10 @@ const api = {
               let bankShare = Math.floor((amount * .2) > 1 ? (amount * .2) : 1);
               let interest = bankShare;
               let payAmount = amount - bankShare;
+              if (payAmount < 1) {
+                payAmount = 1;
+                bankShare = 0;
+              }
               this.addAmountToBank(0 - bankShare - interest);
               userRef.update({ glimmer: userSnapshot.val().glimmer - payAmount, oweTo });
 
