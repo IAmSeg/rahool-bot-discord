@@ -124,7 +124,7 @@ const api = {
       const bankRef = this.database.ref(`glimmerBank`);
       userRef.once('value', snapshot => {
         // make sure they're not on bank cooldown
-        if (snapshot.val().bankCooldown) {
+        if (utilities.minutesSince(snapshot.val().bankCooldown) < 1) {
           bot.sendMessage({
             to: channelId,
             message: `<@${userId}>, you are on hiatus from your previous bank robbery attempt. Lay low for a bit.`
@@ -143,10 +143,7 @@ const api = {
         }
 
         // bank cooldown
-        userRef.update({ bankCooldown: true });
-        setTimeout(() => {
-          userRef.update({ bankCooldown: false });
-        }, 60000);
+        userRef.update({ bankCooldown: moment().unix() });
 
         // successful bank rob
         if (guess == secret) {
@@ -694,6 +691,26 @@ const api = {
     }
   },
 
+  // @summar - gets the battle cooldown for a user
+  // @param userId - calling user
+  // @param bot - this bot, duh
+  // @channelId - id of the channel to write to
+  getBattleCooldown(userId, bot, channelId) {
+    try {
+      const ref = this.database.ref(`users/${userId}`);
+      ref.once('value', s => {
+        let cooldown = Math.abs((moment().unix() - ((3 * 60) + s.val().battleCooldown)) / 60).toFixed(2);
+        bot.sendMessage({
+          to: channelId,
+          message: `<@${userId}> you are exhausted from your previous battle. You must take time to recover. You can battle in **${cooldown}** minutes.`
+        })
+      });
+    }
+    catch (e) {
+      logger.error(`Error in getBattleCooldown for ${userId}: ${e}`);
+    }
+  },
+
   // @summary battles an enemy from the selected tier
   // @param userId - calling user
   // @param bot - this bot, duh
@@ -704,12 +721,8 @@ const api = {
       const user = this.database.ref(`users/${userId}`);
       user.once('value', snapshot => {
         try {
-          if (snapshot.val().battleCooldown) {
-            bot.sendMessage({
-              to: channelId,
-              message: `<@${userId}>, you are exhausted from your previous battle. You must take time to recover.`
-            });
-
+          if (utilities.minutesSince(snapshot.val().battleCooldown) < 3) {
+            this.getBattleCooldown(userId, bot, channelId);
             return;
           }
 
@@ -802,14 +815,9 @@ const api = {
           }
 
           // add a battle cooldown
-          user.update({ battleCooldown: true });
+          user.update({ battleCooldown: moment().unix() });
 
           user.update({ glimmer: snapshot.val().glimmer + (won ? Number(glimmerWonOrLost) : Number(0 - glimmerWonOrLost)) });
-
-          // remove the battle cooldown in minutes
-          setTimeout(() => {
-            user.update({ battleCooldown: false });
-          }, 180000);
         }
         catch (e) {
           logger.error(`Error in battle for user: ${userId}: ${e}.`);

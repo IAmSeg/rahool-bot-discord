@@ -136,23 +136,6 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       });
     }
 
-    // testing delete
-    if (message === '!delete') {
-      bot.sendMessage({
-        to: channelId,
-        message: `Testing delete in 5 seconds`
-      }, (error, response) => {
-        setTimeout(() => {
-          bot.deleteMessage({
-            channelID: channelId,
-            messageID: response.id
-          }, (err) => {
-            logger.error(`Error deleting message: ${response.id} in channel ${channelId}: ${err}`);
-          });
-        }, 5000);
-      });
-    }
-
     // battle
     if (message.split(' ')[0] === '!battle') {
       let tier = message.split(' ')[1];
@@ -165,6 +148,9 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       else 
         api.battle(userId, bot, channelId, tier);
     }
+
+    if (message === '!battlecooldown')
+      api.getBattleCooldown(userId, bot, channelId);
 
     //loan
     if (message.split(' ')[0] === '!loan') {

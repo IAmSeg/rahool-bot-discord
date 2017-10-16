@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 const utilities = {
   // @summary returns a random number between min and max inclusive
   // @param - min number
@@ -12,6 +14,11 @@ const utilities = {
   // @returns - random item from arr
   getRandomFrom(arr) {
     return arr[this.randomNumberBetween(0, arr.length - 1)];
+  },
+
+  // @summary gets the minutes since time
+  minutesSince(time) {
+    return Math.abs((moment().unix() - time) / 60).toFixed(2);
   }
 }
 
