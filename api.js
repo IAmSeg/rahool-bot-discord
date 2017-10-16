@@ -333,15 +333,19 @@ export default class Api {
             users.update({ glimmer: 0 , oweTo: false });
 
             // wipe mainframe
-            mainRef.update({ fragmentationRate: 0, transactionCount: 0 });
+            mainRef.update({ fragmentationRate: 0, transactionCount: 0, crashes: s.val().crashes + 1 });
 
             // wipe bank
             const bank = this.database.ref(`glimmerBank`);
             bank.update({ amount: 0 });
 
+            let message = `***********************\n`;
+            message += `**MAINFRAME ERROR**. FRAGMENTATION RATE AT 100%. ALL GLIMMER HAS BEEN LOST.\n`;
+            message += `MAINFRAME CRASHES: **${s.val().crashes}**`;
+            message += `***********************`;
             this.bot.sendMessage({
               to: this.channelId,
-              message: `**MAINFRAME ERROR**. FRAGMENTATION RATE AT 100%. ALL GLIMMER HAS BEEN LOST.`
+              message
             });
           }
         }
@@ -361,7 +365,7 @@ export default class Api {
       const fragRef = this.database.ref(`glimmerMainframe`);
       fragRef.once('value', s => {
         try {
-          let message = `Current Glimmer Mainframe fragmentation rate: **${s.val().fragmentationRate.toFixed(7)}%**. Current transaction count: **${s.val().transactionCount}**.`;
+          let message = `Current Glimmer Mainframe fragmentation rate: **${s.val().fragmentationRate.toFixed(7)}%**. Current transaction count: **${s.val().transactionCount}**. Crashes: **${s.val().crashes}**`;
           this.bot.sendMessage({
             to: this.channelId,
             message

@@ -21,12 +21,7 @@ var bot = new Discord.Client({
 
 var randomGames = [
   'Stealing your glimmer...',
-  'Try !glimmer',
-  'Try !bankamount',
-  'Try !buyengram',
-  'Try !gamble',
-  'Try !robbank',
-  'Try !battle',
+  'Try !commands',
   'Hoarding exotics...',
   'Snorting bright dust',
 ];
@@ -290,6 +285,19 @@ bot.on('message', function (user, userId, channelId, message, evt) {
     if (message === '!loans') 
       api.getLoans(userId);
 
+    // more info on loan system
+    if (message === '!loansystem') {
+      let message = `The Global Glimmer Bank mediates all loans between users.\n`;
+      message += `If you !loan an amount to someone, the full amount is taken from your glimmer and added to theirs immediately.\n`;
+      message += `If you !collect on a loan, the loanee pays the full amount, but the Global Glimmer Bank takes 20% of the collection amount from the loaner as a collection fee.\n`;
+      message += `If you !repay on a loan, the Global Glimmer Bank is pleased about your repayment and will pay 20% of your debt for you. The loanee pays 80% of the debt. The loaner will also receive 20% interest on the repayment from the Global Glimmer Bank.\n`;
+      message += `Loanees cannot !repay if they do not have enough glimmer, but collectors can !collect no matter how much glimmer the loanee has. Be responsible with other people's glimmer!`;
+      bot.sendMessage({
+        to: channelId,
+        message
+      });
+    }
+
     // mainframe fragementation rate
     if (message === '!frag') {
       api.getFragmentationRate();
@@ -304,6 +312,12 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       }
       else {
         let amount = Number(message.split(' ')[1]);
+        if (amount< 1 ) {
+          bot.sendMessage({
+            to: channelId,
+            message: `<@${userId}> come on. **!defrag AMOUNT**`
+          });
+        }
         if (isNaN(amount)) {
           bot.sendMessage({
             to: channelId,
@@ -326,7 +340,34 @@ bot.on('message', function (user, userId, channelId, message, evt) {
 
     // list all commands
     if (message === '!commands') {
+      let message = `Current available commands: \n`;
+      message += `**!glimmer** - Check your current glimmer.\n`;
+      message += `**!buyengram**- Buy an engram from Rahool for 100 glimmer.\n`;
+      message += `**!light** - Check your current light level.\n`;
+      message += `**!lightrank** - Check the light level of everyone in the server, ranked highest to lowest.\n`;
+      message += `**!loadout** - Check your current loadout.\n`;
+      message += `**!gamble AMOUNT** - Gamble AMOUNT of glimmer.\n`;
+      message += `**!gamblehelp** - More information on how gambling wins or losses are determined.\n`;
+      message += `**!gambleodds** - Check the current house gambling odds.\n`;
+      message += `**!robbank SECRET_GUESS** - Attempt to rob the Global Glimmer Bank by guessing the secret vault number (1-100).\n`;
+      message += `**!howtorobbank** - More informatoin on how to rob the Global Glimmer Bank.\n`;
+      message += `**!bankamount** - Check the current Global Glimmer Bank amount.\n`;
+      message += `**!battle ENEMY_TIER** - Battles an enemy in your selected tier (1-8).\n`;
+      message += `**!battlecooldown** - Check your current battle cooldown time.\n`;
+      message += `**!loan AMOUNT @user** - Loan AMOUNT glimmer to a user.\n`;
+      message += `**!collect AMOUNT @user** - Collect a loan of AMOUNT glimmer from @user who you have loaned to.\n`;
+      message += `**!repay AMOUNT @user** - Repay a loan of AMOUNT glimmer to @user who has loaned glimmer to you.\n`;
+      message += `**!loans** - Check the amount of glimmer you have loaned out.\n`;
+      message += `**!debt** - Check how much glimmer you are in debt (how much you have been loaned).\n`;
+      message += `**!loansystem** - More information about how the loan/repay/collect system works.\n`;
+      message += `**!frag** - Check the current Glimmer Mainframe fragmentation rate.\n`;
+      message += `**!defrag AMOUNT** - Donate AMOUNT glimmer to defragmentation repairs of the Glimmer Mainframe.\n`;
+      message += `**!aboutfrag** - More information about how the Glimmer Mainframe fragmentation works.\n`;
 
+      bot.sendMessage({
+        to: channelId,
+        message
+      });
     }
   }
   catch (e) {
