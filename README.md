@@ -11,13 +11,28 @@ if you'd like to run it yourself with your own API keys.
 
 ### Current functionality
 
-* Keeps track of currency for users, known as glimmer
-* Automatically adds 5 glimmer per message to a user when they type within discord
-* Users can buy engrams for 100 glimmer
-* Keeps track of users light level and loadout from bought engrams 
-* Engrams decrypt within certain light levels and tiers (common, uncommon, rare, legendary, exotic) depending on the user's current light level
-* Users can gamble glimmer
-* Users can check the light level of all users within the server to see who has highest light
+* **!glimmer** - Check your current glimmer
+* **!buyengram**- Buy an engram from Rahool for 100 glimmer
+* **!light** - Check your current light level
+* **!lightrank** - Check the light level of everyone in the server, ranked highest to lowest
+* **!loadout** - Check your current loadout
+* **!gamble AMOUNT** - Gamble AMOUNT of glimmer
+* **!gamblehelp** - More information on how gambling wins or losses are determined
+* **!gambleodds** - Check the current house gambling odds
+* **!robbank SECRET_GUESS** - Attempt to rob the Global Glimmer Bank by guessing the secret vault number (1-100)
+* **!howtorobbank** - More informatoin on how to rob the Global Glimmer Bank
+* **!bankamount** - Check the current Global Glimmer Bank amount
+* **!battle ENEMY_TIER** - Battles an enemy in your selected tier (1-8)
+* **!battlecooldown** - Check your current battle cooldown time
+* **!loan AMOUNT @user** - Loan AMOUNT glimmer to a user
+* **!collect AMOUNT @user** - Collect a loan of AMOUNT glimmer from @user who you have loaned to
+* **!repay AMOUNT @user** - Repay a loan of AMOUNT glimmer to @user who has loaned glimmer to you
+* **!loans** - Check the amount of glimmer you have loaned out
+* **!debt** - Check how much glimmer you are in debt (how much you have been loaned)
+* **!loansystem** - More information about how the loan/repay/collect system works
+* **!frag** - Check the current Glimmer Mainframe fragmentation rate
+* **!defrag AMOUNT** - Donate AMOUNT glimmer to defragmentation repairs of the Glimmer Mainframe.
+* **!aboutfrag** - More information about how the Glimmer Mainframe fragmentation works.
 
 ### Setup
 
