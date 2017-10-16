@@ -125,7 +125,7 @@ const lightLevelConfig = {
 
     // if the engram tier is exotic, it can go above max light
     if (engramTier.name === 'Exotic') {
-      let exoticMax = Math.floor(this.maxLight * engramTier[max]);
+      let exoticMax = Math.floor(this.maxLight * engramTier.max);
       return Math.floor(newLight > exoticMax ? exoticMax : newLight);
     }
     else
