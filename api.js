@@ -74,22 +74,28 @@ export default class Api {
   // @summary - gives glimmer to a user
   // @param userId - user to give glimmer to
   // @param amount
-  addGlimerToUser(userId, amount) {
+  addGlimmerToUser(userId, amount) {
     this.fragmentGlimmerMainframe(amount);
     const user = this.database.ref(`users/${userId}`);
     user.once('value', snapshot => {
-      user.update({ glimmer: snapshot.val().glimmer + amount });
+      try {
+        user.update({ glimmer: snapshot.val().glimmer + amount });
+      }
+      catch (e) { logger.error(`Error adding glimmer to user: ${userId}: ${e}`); }
     });
   }
 
   // @summary - takes glimmer from a user
   // @param userId - user to take glimmer from
   // @param amount
-  takeGlimerFromUser(userId, amount) {
+  takeGlimmerFromUser(userId, amount) {
     this.fragmentGlimmerMainframe(amount);
     const user = this.database.ref(`users/${userId}`);
     user.once('value', snapshot => {
-      user.update({ glimmer: snapshot.val().glimmer - amount });
+      try {
+        user.update({ glimmer: snapshot.val().glimmer - amount });
+      }
+      catch (e) { logger.error(`Error taking glimmer from user: ${userId}: ${e}`); }
     });
   }
 
@@ -104,10 +110,13 @@ export default class Api {
       this.addAmountToBank(5);
       const user = this.database.ref(`users/${userId}`);
       user.once('value', snapshot => {
-        if (snapshot.val())
-          snapshot.ref.update({ glimmer: snapshot.val().glimmer + 5, username });
-        else
-          this.writeData(userId, username);
+        try {
+          if (snapshot.val())
+            snapshot.ref.update({ glimmer: snapshot.val().glimmer + 5, username });
+          else
+            this.writeData(userId, username);
+        }
+        catch (e) { logger.error(`Error updating glimmer for user: ${userId}: ${e}`); }
       });
     }
     catch (e) {
@@ -121,16 +130,21 @@ export default class Api {
     try {
       const user = this.database.ref(`users/${userId}`);
       user.once('value', snapshot => {
-        if (snapshot.val())
-          this.bot.sendMessage({
-            to: this.channelId,
-            message: `Current glimmer for <@${userId}>: ${snapshot.val().glimmer}.`
-          });
-        else
-          this.bot.sendMessage({
-            to: this.channelId,
-            message: `No glimmer for <@${userId}>.`
-          });
+        try {
+          if (snapshot.val()) {
+            this.bot.sendMessage({
+              to: this.channelId,
+              message: `Current glimmer for <@${userId}>: ${snapshot.val().glimmer}.`
+            });
+          }
+          else {
+            this.bot.sendMessage({
+              to: this.channelId,
+              message: `No glimmer for <@${userId}>.`
+            });
+          }
+        } 
+        catch (e) { logger.error(`Error in getcurrentglimmer for user: ${userId}: ${e}`); }
       });
     }
     catch (e) {
@@ -216,21 +230,24 @@ export default class Api {
 
       const user = this.database.ref(`users/${userId}`);
       user.once('value', snapshot => {
-        if (snapshot.val()) {
-          if (snapshot.val().glimmer < amount) {
+        try {
+          if (snapshot.val()) {
+            if (snapshot.val().glimmer < amount) {
+              this.bot.sendMessage({
+                to: this.channelId,
+                message: `<@${userId}> you don't have that much glimmer to gamble.`
+              });
+              return;
+            }
             this.bot.sendMessage({
               to: this.channelId,
-              message: `<@${userId}> you don't have that much glimmer to gamble.`
+              message: `<@${userId}> ${message}`
             });
-            return;
+            let glimmer = (Number(snapshot.val().glimmer) + Number(newAmount));
+            snapshot.ref.update({ glimmer });
           }
-          this.bot.sendMessage({
-            to: this.channelId,
-            message: `<@${userId}> ${message}`
-          });
-          let glimmer = (Number(snapshot.val().glimmer) + Number(newAmount));
-          snapshot.ref.update({ glimmer });
         }
+        catch (e) { logger.error(`Error in gambleGlimmer for user: ${userId} amount ${amount}: ${e}`); }
       });
     }
     catch (e) {
@@ -255,7 +272,10 @@ export default class Api {
       let fragmentationAmount = Math.abs(amount) * oneGlimmerPercentage * 100;
       const fragRef = this.database.ref(`glimmerMainframe`);
       fragRef.once('value', s => {
-        fragRef.update({ fragmentationRate: s.val().fragmentationRate + fragmentationAmount, transactionCount: s.val().transactionCount + 1 });
+        try {
+          fragRef.update({ fragmentationRate: s.val().fragmentationRate + fragmentationAmount, transactionCount: s.val().transactionCount + 1 });
+        }
+        catch (e) { logger.error(`Error fragmenting glimmer mainframe: ${amount}: ${e}`); }
       });
 
       this.checkMainframeFragmentation();
@@ -273,12 +293,18 @@ export default class Api {
       let fragmentationAmount = Math.abs(amount) * oneGlimmerPercentage * 100;
       const fragRef = this.database.ref(`glimmerMainframe`);
       fragRef.once('value', s => {
-        fragRef.update({ fragmentationRate: s.val().fragmentationRate - fragmentationAmount });
+        try {
+          fragRef.update({ fragmentationRate: s.val().fragmentationRate - fragmentationAmount });
 
-        const userRef = this.database.ref(`users/${userId}`);
-        userRef.once('value', us => {
-          userRef.update({ glimmer: us.val().glimmer - amount });
-        });
+          const userRef = this.database.ref(`users/${userId}`);
+          userRef.once('value', us => {
+            try {
+              userRef.update({ glimmer: us.val().glimmer - amount });
+            }
+            catch (e) { logger.error(`Error in defragmentGlimmerMainframe for user: ${userId}: ${e}`); }
+          });
+        }
+        catch (e) { logger.error(`Error in defragGlimmerMainframe for user: ${userId}: ${e}`); }
       });
 
 
@@ -299,24 +325,27 @@ export default class Api {
     try {
       const mainRef = this.database.ref(`glimmerMainframe`);
       mainRef.once('value', s => {
-        // mainframe crash
-        if (s.val().fragmentationRate >= 100) {
-          // wipe users
-          const users = this.database.ref(`users`); 
-          users.update({ glimmer: 0 , oweTo: false });
+        try {
+          // mainframe crash
+          if (s.val().fragmentationRate >= 100) {
+            // wipe users
+            const users = this.database.ref(`users`); 
+            users.update({ glimmer: 0 , oweTo: false });
 
-          // wipe mainframe
-          mainRef.update({ fragmentationRate: 0, transactionCount: 0 });
+            // wipe mainframe
+            mainRef.update({ fragmentationRate: 0, transactionCount: 0 });
 
-          // wipe bank
-          const bank = this.database.ref(`glimmerBank`);
-          bank.update({ amount: 0 });
+            // wipe bank
+            const bank = this.database.ref(`glimmerBank`);
+            bank.update({ amount: 0 });
 
-          this.bot.sendMessage({
-            to: this.channelId,
-            message: `**MAINFRAME ERROR**. FRAGMENTATION RATE AT 100%. ALL GLIMMER HAS BEEN LOST.`
-          });
+            this.bot.sendMessage({
+              to: this.channelId,
+              message: `**MAINFRAME ERROR**. FRAGMENTATION RATE AT 100%. ALL GLIMMER HAS BEEN LOST.`
+            });
+          }
         }
+        catch (e) { logger.error(`Error checking mainframe fragementation: ${e}`); }
       });
     } 
     catch (e) {
@@ -331,11 +360,14 @@ export default class Api {
     try {
       const fragRef = this.database.ref(`glimmerMainframe`);
       fragRef.once('value', s => {
-        let message = `Current Glimmer Mainframe fragmentation rate: **${s.val().fragmentationRate.toFixed(7)}%**. Current transaction count: **${s.val().transactionCount}**.`;
-        this.bot.sendMessage({
-          to: this.channelId,
-          message
-        });
+        try {
+          let message = `Current Glimmer Mainframe fragmentation rate: **${s.val().fragmentationRate.toFixed(7)}%**. Current transaction count: **${s.val().transactionCount}**.`;
+          this.bot.sendMessage({
+            to: this.channelId,
+            message
+          });
+        }
+        catch (e) { logger.error(`Error in getFragmentationRate: ${e}`); }
       });
     } 
     catch (e) {
@@ -350,7 +382,10 @@ export default class Api {
       this.fragmentGlimmerMainframe(amount);
       const ref = this.database.ref(`glimmerBank`);
       ref.once('value', snapshot => {
-        snapshot.ref.update({ amount: snapshot.val().amount + amount });
+        try {
+          snapshot.ref.update({ amount: snapshot.val().amount + amount });
+        }
+        catch (e) { logger.error(`Error adding glimmer to bank: ${amount}: ${e}`); }
       });
     }
     catch (e) {
@@ -364,10 +399,13 @@ export default class Api {
     try {
       const ref = this.database.ref(`glimmerBank`);
       ref.once('value', snapshot => {
-        this.bot.sendMessage({
-          to: this.channelId,
-          message: `Current Global Glimmer Bank amount: **${snapshot.val().amount}** glimmer.`
-        })
+        try {
+          this.bot.sendMessage({
+            to: this.channelId,
+            message: `Current Global Glimmer Bank amount: **${snapshot.val().amount}** glimmer.`
+          });
+        }
+        catch (e) { logger.error(`Error getting bank amount: ${e}`); }
       });
     }
     catch (e) {
@@ -384,60 +422,61 @@ export default class Api {
       const userRef = this.database.ref(`users/${userId}`);
       const bankRef = this.database.ref(`glimmerBank`);
       userRef.once('value', snapshot => {
-        // make sure they're not on bank cooldown
-        if (utilities.minutesSince(snapshot.val().bankCooldown) < 1) {
-          this.bot.sendMessage({
-            to: this.channelId,
-            message: `<@${userId}>, you are on hiatus from your previous bank robbery attempt. Lay low for a bit.`
-          });       
-
-          return;
-        }
-
-        let userGlimmer = snapshot.val().glimmer; 
-        if (userGlimmer < -100) {
-          this.bot.sendMessage({
-            to: this.channelId,
-            message: `Sorry <@${userId}>, you don't have enough glimmer to attempt a bank robbery.`
-          });
-          return;
-        }
-
-        // bank cooldown
-        userRef.update({ bankCooldown: moment().unix() });
-
-        // successful bank rob
-        if (guess == secret) {
-          bankRef.once('value', snapshot => {
-            let amount = snapshot.val().amount;
-
+        try {
+          // make sure they're not on bank cooldown
+          if (utilities.minutesSince(snapshot.val().bankCooldown) < 1) {
             this.bot.sendMessage({
               to: this.channelId,
-              message: `Congratulations <@${userId}>! You guessed the secret number and successfully robbed the Global Glimmer Bank of **${amount}** glimmer!`
-            });
+              message: `<@${userId}>, you are on hiatus from your previous bank robbery attempt. Lay low for a bit.`
+            });       
 
-            userRef.once('value', snapshot => {
-              userRef.update({ glimmer: snapshot.val().glimmer + amount });
-            });
+            return;
+          }
 
-            bankRef.update({ amount: 0 });
-          });
+          let userGlimmer = snapshot.val().glimmer; 
+          if (userGlimmer < -100) {
+            this.bot.sendMessage({
+              to: this.channelId,
+              message: `Sorry <@${userId}>, you don't have enough glimmer to attempt a bank robbery.`
+            });
+            return;
+          }
+
+          // bank cooldown
+          userRef.update({ bankCooldown: moment().unix() });
+
+          // successful bank rob
+          if (guess == secret) {
+            bankRef.once('value', bankSnapshot => {
+              try {
+                let amount = bankSnapshot.val().amount;
+
+                this.bot.sendMessage({
+                  to: this.channelId,
+                  message: `Congratulations <@${userId}>! You guessed the secret number and successfully robbed the Global Glimmer Bank of **${amount}** glimmer!`
+                });
+
+                this.addGlimmerToUser(userId, amount);
+
+                bankRef.update({ amount: 0 });
+              }
+              catch (e) { logger.error(`Error robbing bank for user: ${userId}: ${e}`); }
+            });
+          }
+          else {
+            // fine of 20%
+            let fineAmount = Math.abs(Math.floor(snapshot.val().glimmer * 0.2));
+            // fine them at least 5, 20 if they don't even have that much glimmer
+            fineAmount = fineAmount < 5 ? 20 : fineAmount;
+            this.addAmountToBank(Math.abs(fineAmount));
+            this.takeGlimmerFromUser(userId, Math.abs(fineAmount));
+            this.bot.sendMessage({
+              to: this.channelId,
+              message: `Sorry <@${userId}>, you were caught trying to rob the bank with a failed robbery attempt. The secret number was **${secret}**. You've been fined **${fineAmount}** glimmer by the glimmer police.`
+            });
+          }
         }
-        else {
-          // fine of 20%
-          let fineAmount = Math.abs(Math.floor(snapshot.val().glimmer * 0.2));
-          // fine them at least 5, 20 if they don't even have that much glimmer
-          fineAmount = fineAmount < 5 ? 20 : fineAmount;
-          bankRef.once('value', snapshot => {
-            amount = snapshot.val().amount;
-            bankRef.update({ amount: amount + Math.abs(fineAmount) });
-          });
-          userRef.update({ glimmer: snapshot.val().glimmer - Math.abs(fineAmount) });
-          this.bot.sendMessage({
-            to: this.channelId,
-            message: `Sorry <@${userId}>, you were caught trying to rob the bank with a failed robbery attempt. The secret number was **${secret}**. You've been fined **${fineAmount}** glimmer by the glimmer police.`
-          });
-        }
+        catch (e) { logger.error(`Error robbing bank for user: ${userId}: ${e}`); }
       });
     }
     catch (e) {
@@ -459,21 +498,24 @@ export default class Api {
     try {
       const ref = this.database.ref(`users/${userId}`);
       ref.once('value', snapshot => {
-        let message = `Loadout for <@${userId}>: \n` +
-          `Kinetic weapon: ${snapshot.val().itemLightLevels.kineticName} (${snapshot.val().itemLightLevels.kineticLight})\n` +
-          `Energy weapon: ${snapshot.val().itemLightLevels.energyName} (${snapshot.val().itemLightLevels.energyLight})\n` +
-          `Power weapon: ${snapshot.val().itemLightLevels.powerName} (${snapshot.val().itemLightLevels.powerLight})\n` +
-          `Helmet: ${snapshot.val().itemLightLevels.helmetName} (${snapshot.val().itemLightLevels.helmetLight})\n` +
-          `Gauntlets: ${snapshot.val().itemLightLevels.gauntletsName} (${snapshot.val().itemLightLevels.gauntletsLight})\n` +
-          `Chest Armor: ${snapshot.val().itemLightLevels.chestName} (${snapshot.val().itemLightLevels.chestLight})\n` +
-          `Leg Armor: ${snapshot.val().itemLightLevels.legsName} (${snapshot.val().itemLightLevels.legsLight})\n` +
-          `Class Item: ${snapshot.val().itemLightLevels.className} (${snapshot.val().itemLightLevels.classLight})\n` +
-          `Total Light: **${lightLevelConfig.calculateLightLevel(snapshot.val())}**`;
+        try {
+          let message = `Loadout for <@${userId}>: \n` +
+            `Kinetic weapon: ${snapshot.val().itemLightLevels.kineticName} (${snapshot.val().itemLightLevels.kineticLight})\n` +
+            `Energy weapon: ${snapshot.val().itemLightLevels.energyName} (${snapshot.val().itemLightLevels.energyLight})\n` +
+            `Power weapon: ${snapshot.val().itemLightLevels.powerName} (${snapshot.val().itemLightLevels.powerLight})\n` +
+            `Helmet: ${snapshot.val().itemLightLevels.helmetName} (${snapshot.val().itemLightLevels.helmetLight})\n` +
+            `Gauntlets: ${snapshot.val().itemLightLevels.gauntletsName} (${snapshot.val().itemLightLevels.gauntletsLight})\n` +
+            `Chest Armor: ${snapshot.val().itemLightLevels.chestName} (${snapshot.val().itemLightLevels.chestLight})\n` +
+            `Leg Armor: ${snapshot.val().itemLightLevels.legsName} (${snapshot.val().itemLightLevels.legsLight})\n` +
+            `Class Item: ${snapshot.val().itemLightLevels.className} (${snapshot.val().itemLightLevels.classLight})\n` +
+            `Total Light: **${lightLevelConfig.calculateLightLevel(snapshot.val())}**`;
 
-        this.bot.sendMessage({
-          to: this.channelId,
-          message
-        });
+          this.bot.sendMessage({
+            to: this.channelId,
+            message
+          });
+        } 
+        catch (e) { logger.error(`Error getting loadout for user: ${userId}: ${e}`); }
      });
     }
     catch (e) {
@@ -486,22 +528,25 @@ export default class Api {
     try {
       const users = this.database.ref('users/');
       users.once('value', snapshot => {
-        const snapVal = snapshot.val();
-        const userList = [];
-        let message = `Light ranks:\n`;
-        for (let user in snapVal)
-          userList.push(snapVal[user]);
+        try {
+          const snapVal = snapshot.val();
+          const userList = [];
+          let message = `Light ranks:\n`;
+          for (let user in snapVal)
+            userList.push(snapVal[user]);
 
-        userList.sort((a, b) => lightLevelConfig.calculateLightLevel(b) - lightLevelConfig.calculateLightLevel(a));
+          userList.sort((a, b) => lightLevelConfig.calculateLightLevel(b) - lightLevelConfig.calculateLightLevel(a));
 
-        userList.forEach((user, i) => {
-          message += `${i + 1}: ${user.username}, light: ${lightLevelConfig.calculateLightLevel(user)}\n`; 
-        });
+          userList.forEach((user, i) => {
+            message += `${i + 1}: ${user.username}, light: ${lightLevelConfig.calculateLightLevel(user)}\n`; 
+          });
 
-        this.bot.sendMessage({
-          to: this.channelId,
-          message
-        });
+          this.bot.sendMessage({
+            to: this.channelId,
+            message
+          });
+        }
+        catch (e) { logger.error(`Error getting light rank: ${e}`); }
       });
     }
     catch (e) {
@@ -513,14 +558,10 @@ export default class Api {
   // @param userId - calling user
   rahoolIsADick(userId) {
     try {
-      const user = this.database.ref(`users/${userId}`);
-      user.once('value', snapshot => {
-        if (snapshot.val())
-          snapshot.ref.update({ glimmer: snapshot.val().glimmer - 100 });
-          this.bot.sendMessage({
-            to: this.channelId,
-            message: `As a special "fuck you" from me to you, <@${userId}>, your engram decrypted into nothing but shards. Sorry!`
-          });
+      this.takeGlimmerFromUser(userId, 100);
+      this.bot.sendMessage({
+        to: this.channelId,
+        message: `As a special "fuck you" from me to you, <@${userId}>, your engram decrypted into nothing but shards. Sorry!`
       });
     }
     catch (e) {
@@ -534,13 +575,16 @@ export default class Api {
     try {
       const user = this.database.ref(`users/${userId}`);
       user.once('value', snapshot => {
-        if (snapshot.val()) {
-          const currentLight = lightLevelConfig.calculateLightLevel(snapshot.val());
-          this.bot.sendMessage({
-            to: this.channelId,
-            message: `Current light level for <@${userId}>: **${currentLight}**.`
-          });
+        try {
+          if (snapshot.val()) {
+            const currentLight = lightLevelConfig.calculateLightLevel(snapshot.val());
+            this.bot.sendMessage({
+              to: this.channelId,
+              message: `Current light level for <@${userId}>: **${currentLight}**.`
+            });
+          }
         }
+        catch (e) { logger.error(`Error getting current light for user: ${userId}: ${e}`); }
       });
     }
     catch (e) {
@@ -555,48 +599,54 @@ export default class Api {
       this.fragmentGlimmerMainframe(amount);
       const user = this.database.ref(`users/${userId}`);
       user.once('value', snapshot => {
-        if (snapshot.val()) {
-          if (snapshot.val().glimmer < 100) {
-            this.bot.sendMessage({
-              to: this.channelId,
-              message: `I'm sorry. You don't have enough glimmer to buy an engram. Engrams cost **100** glimmer. You have **${snapshot.val().glimmer}** glimmer.`
+        try {
+          if (snapshot.val()) {
+            if (snapshot.val().glimmer < 100) {
+              this.bot.sendMessage({
+                to: this.channelId,
+                message: `I'm sorry. You don't have enough glimmer to buy an engram. Engrams cost **100** glimmer. You have **${snapshot.val().glimmer}** glimmer.`
+              });
+
+              return;
+            }
+
+            // remove 100 from the user and add it to the bank
+            snapshot.ref.update({ glimmer: snapshot.val().glimmer - 100 });
+            this.addAmountToBank(100);
+
+            let currentLight = lightLevelConfig.calculateLightLevel(snapshot.val())
+            let engramTier = lightLevelConfig.determineEarnedEngram(currentLight);
+
+            // grab a random item from the armory of this tier
+            const items = this.database.ref(`armory/${engramTier.name}`);
+            items.once('value', itemSnapshot => {
+              try {
+                const tierItems = [];
+                const snapshotVal = itemSnapshot.val();
+                for (let item in snapshotVal)
+                  tierItems.push(snapshotVal[item]);
+
+                let random = utilities.randomNumberBetween(0, tierItems.length - 1);
+                let selectedItem = tierItems[random];
+                let engramLightLevel = lightLevelConfig.determineEngramLightLevel(currentLight, engramTier);
+
+                this.updateLightLevel(userId, selectedItem, engramLightLevel);
+
+                // send the message
+                let message = `Oh I have a nice ${engramTier.color} ${engramTier.name} engram for you, <@${userId}>! ` +
+                              `It it a **${selectedItem.name}** that decrypted at **${engramLightLevel}** light. ` +
+                              `*${selectedItem.description}* ` +
+                              `${selectedItem.link}`;
+                this.bot.sendMessage({
+                  to: this.channelId,
+                  message
+                });
+              }
+              catch (e) { logger.error(`Error getting engram from db for user: ${userId}: ${e}`); }
             });
-
-            return;
           }
-
-          // remove 100 from the user and add it to the bank
-          snapshot.ref.update({ glimmer: snapshot.val().glimmer - 100 });
-          this.addAmountToBank(100);
-
-          let currentLight = lightLevelConfig.calculateLightLevel(snapshot.val())
-          let engramTier = lightLevelConfig.determineEarnedEngram(currentLight);
-
-          // grab a random item from the armory of this tier
-          const items = this.database.ref(`armory/${engramTier.name}`);
-          items.once('value', itemSnapshot => {
-            const tierItems = [];
-            const snapshotVal = itemSnapshot.val();
-            for (let item in snapshotVal)
-              tierItems.push(snapshotVal[item]);
-
-            let random = utilities.randomNumberBetween(0, tierItems.length - 1);
-            let selectedItem = tierItems[random];
-            let engramLightLevel = lightLevelConfig.determineEngramLightLevel(currentLight, engramTier);
-
-            this.updateLightLevel(userId, selectedItem, engramLightLevel);
-
-            // send the message
-            let message = `Oh I have a nice ${engramTier.color} ${engramTier.name} engram for you, <@${userId}>! ` +
-                          `It it a **${selectedItem.name}** that decrypted at **${engramLightLevel}** light. ` +
-                          `*${selectedItem.description}* ` +
-                          `${selectedItem.link}`;
-            this.bot.sendMessage({
-              to: this.channelId,
-              message
-            })
-          });
         }
+        catch (e) { logger.error(`Error getting engram for user: ${userId}: ${e}`); }
       }); 
     }
     catch (e) {
@@ -643,115 +693,118 @@ export default class Api {
       if (itemHasLight) {
         const user = this.database.ref(`users/${userId}`);
         user.once('value', snapshot => {
-          if (snapshot.val()) {
-            // current light items
-            let kineticLight = snapshot.val().itemLightLevels.kineticLight;
-            let energyLight = snapshot.val().itemLightLevels.energyLight;
-            let powerLight = snapshot.val().itemLightLevels.powerLight;
-            let helmetLight = snapshot.val().itemLightLevels.helmetLight;
-            let gauntletsLight = snapshot.val().itemLightLevels.gauntletsLight;
-            let chestLight = snapshot.val().itemLightLevels.chestLight;
-            let legsLight = snapshot.val().itemLightLevels.legsLight;
-            let classLight = snapshot.val().itemLightLevels.classLight;
-            let kineticName = snapshot.val().itemLightLevels.kineticName;
-            let energyName = snapshot.val().itemLightLevels.energyName;
-            let powerName = snapshot.val().itemLightLevels.powerName;
-            let helmetName = snapshot.val().itemLightLevels.helmetName;
-            let gauntletsName = snapshot.val().itemLightLevels.gauntletsName;
-            let chestName = snapshot.val().itemLightLevels.chestName;
-            let legsName = snapshot.val().itemLightLevels.legsName;
-            let className = snapshot.val().itemLightLevels.className;
+          try {
+            if (snapshot.val()) {
+              // current light items
+              let kineticLight = snapshot.val().itemLightLevels.kineticLight;
+              let energyLight = snapshot.val().itemLightLevels.energyLight;
+              let powerLight = snapshot.val().itemLightLevels.powerLight;
+              let helmetLight = snapshot.val().itemLightLevels.helmetLight;
+              let gauntletsLight = snapshot.val().itemLightLevels.gauntletsLight;
+              let chestLight = snapshot.val().itemLightLevels.chestLight;
+              let legsLight = snapshot.val().itemLightLevels.legsLight;
+              let classLight = snapshot.val().itemLightLevels.classLight;
+              let kineticName = snapshot.val().itemLightLevels.kineticName;
+              let energyName = snapshot.val().itemLightLevels.energyName;
+              let powerName = snapshot.val().itemLightLevels.powerName;
+              let helmetName = snapshot.val().itemLightLevels.helmetName;
+              let gauntletsName = snapshot.val().itemLightLevels.gauntletsName;
+              let chestName = snapshot.val().itemLightLevels.chestName;
+              let legsName = snapshot.val().itemLightLevels.legsName;
+              let className = snapshot.val().itemLightLevels.className;
 
-            // if we got an energy or kinetic weapon
-            if (itemName.indexOf('hand cannon') !== -1 ||
-                itemName.indexOf('auto rifle') !== -1 ||
-                itemName.indexOf('scout rifle') !== -1 ||
-                itemName.indexOf('pulse rifle') !== -1 ||
-                itemName.indexOf('sidearm') !== -1) {
-                  if (engramLightLevel > Math.min(kineticLight, energyLight)) {
-                     let weaponToSet = kineticLight < energyLight ? 'kinetic' : 'energy';
-                     if (weaponToSet == 'kinetic') {
-                       kineticLight = engramLightLevel;
-                       kineticName = selectedItem.name;
-                     }
-                     else {
-                       energyLight = engramLightLevel;
-                       energyName = selectedItem.name;
-                     }
-                  }
-            }
-            // if we got a power weapon
-            if (itemName.indexOf('sniper rifle') !== -1 ||
-                itemName.indexOf('fusion rifle') !== -1 ||
-                itemName.indexOf('rocket launcher') !== -1 ||
-                itemName.indexOf('grenade launcher') !== -1 ||
-                itemName.indexOf('grenade launcher') !== -1 ||
-                itemName.indexOf('shotgun') !== -1) {
-                  if (engramLightLevel > powerLight) {
-                    powerLight = engramLightLevel;
-                    powerName = selectedItem.name;
-                  }
+              // if we got an energy or kinetic weapon
+              if (itemName.indexOf('hand cannon') !== -1 ||
+                  itemName.indexOf('auto rifle') !== -1 ||
+                  itemName.indexOf('scout rifle') !== -1 ||
+                  itemName.indexOf('pulse rifle') !== -1 ||
+                  itemName.indexOf('sidearm') !== -1) {
+                    if (engramLightLevel > Math.min(kineticLight, energyLight)) {
+                       let weaponToSet = kineticLight < energyLight ? 'kinetic' : 'energy';
+                       if (weaponToSet == 'kinetic') {
+                         kineticLight = engramLightLevel;
+                         kineticName = selectedItem.name;
+                       }
+                       else {
+                         energyLight = engramLightLevel;
+                         energyName = selectedItem.name;
+                       }
+                    }
+              }
+              // if we got a power weapon
+              if (itemName.indexOf('sniper rifle') !== -1 ||
+                  itemName.indexOf('fusion rifle') !== -1 ||
+                  itemName.indexOf('rocket launcher') !== -1 ||
+                  itemName.indexOf('grenade launcher') !== -1 ||
+                  itemName.indexOf('grenade launcher') !== -1 ||
+                  itemName.indexOf('shotgun') !== -1) {
+                    if (engramLightLevel > powerLight) {
+                      powerLight = engramLightLevel;
+                      powerName = selectedItem.name;
+                    }
 
-            }
-            // if we got a helmet
-            if (itemName.indexOf('helmet') !== -1) {
-              if (engramLightLevel > helmetLight) {
-                helmetLight = engramLightLevel;
-                helmetName = selectedItem.name;
               }
-            }
-            // if we got a chest piece
-            if (itemName.indexOf('chest armor') !== -1) {
-              if (engramLightLevel > chestLight) {
-                chestLight = engramLightLevel;
-                chestName = selectedItem.name;
+              // if we got a helmet
+              if (itemName.indexOf('helmet') !== -1) {
+                if (engramLightLevel > helmetLight) {
+                  helmetLight = engramLightLevel;
+                  helmetName = selectedItem.name;
+                }
               }
-            }
-            // if we got gauntlets
-            if (itemName.indexOf('gauntlets') !== -1) {
-              if (engramLightLevel > gauntletsLight) {
-                gauntletsLight = engramLightLevel;
-                gauntletsName = selectedItem.name;
+              // if we got a chest piece
+              if (itemName.indexOf('chest armor') !== -1) {
+                if (engramLightLevel > chestLight) {
+                  chestLight = engramLightLevel;
+                  chestName = selectedItem.name;
+                }
               }
-            }
-            // if we got legs
-            if (itemName.indexOf('leg armor') !== -1) {
-              if (engramLightLevel > legsLight) {
-                legsLight = engramLightLevel;
-                legsName = selectedItem.name;
+              // if we got gauntlets
+              if (itemName.indexOf('gauntlets') !== -1) {
+                if (engramLightLevel > gauntletsLight) {
+                  gauntletsLight = engramLightLevel;
+                  gauntletsName = selectedItem.name;
+                }
               }
-            }
-            // if we got a class item
-            if (itemName.indexOf('hunter cloak') !== -1 ||
-                itemName.indexOf('titan mark') !== -1 ||
-                itemName.indexOf('warlock bond') !== -1) {
-              if (engramLightLevel > classLight) {
-                classLight = engramLightLevel;
-                className = selectedItem.name;
+              // if we got legs
+              if (itemName.indexOf('leg armor') !== -1) {
+                if (engramLightLevel > legsLight) {
+                  legsLight = engramLightLevel;
+                  legsName = selectedItem.name;
+                }
               }
-            }
+              // if we got a class item
+              if (itemName.indexOf('hunter cloak') !== -1 ||
+                  itemName.indexOf('titan mark') !== -1 ||
+                  itemName.indexOf('warlock bond') !== -1) {
+                if (engramLightLevel > classLight) {
+                  classLight = engramLightLevel;
+                  className = selectedItem.name;
+                }
+              }
 
-            // object to represent users new light levels and loadouts
-            let itemLightLevels = {
-              helmetLight,
-              chestLight,
-              gauntletsLight,
-              legsLight,
-              classLight,
-              kineticLight,
-              energyLight,
-              powerLight,
-              kineticName,
-              energyName,
-              powerName,
-              helmetName,
-              gauntletsName,
-              chestName,
-              legsName,
-              className
-            };
-            snapshot.ref.update({ itemLightLevels });
+              // object to represent users new light levels and loadouts
+              let itemLightLevels = {
+                helmetLight,
+                chestLight,
+                gauntletsLight,
+                legsLight,
+                classLight,
+                kineticLight,
+                energyLight,
+                powerLight,
+                kineticName,
+                energyName,
+                powerName,
+                helmetName,
+                gauntletsName,
+                chestName,
+                legsName,
+                className
+              };
+              snapshot.ref.update({ itemLightLevels });
+            }
           }
+          catch (e) { logger.error(`Error updating light level for user: ${userId}: ${e}`); }
         });
       }
     } 
@@ -831,11 +884,14 @@ export default class Api {
     try {
       const ref = this.database.ref(`users/${userId}`);
       ref.once('value', s => {
-        let cooldown = Math.abs((moment().unix() - ((3 * 60) + s.val().battleCooldown)) / 60).toFixed(2);
-        this.bot.sendMessage({
-          to: this.channelId,
-          message: `<@${userId}> you are exhausted from your previous battle. You must take time to recover. You can battle in **${cooldown}** minutes.`
-        })
+        try {
+          let cooldown = Math.abs((moment().unix() - ((3 * 60) + s.val().battleCooldown)) / 60).toFixed(2);
+          this.bot.sendMessage({
+            to: this.channelId,
+            message: `<@${userId}> you are exhausted from your previous battle. You must take time to recover. You can battle in **${cooldown}** minutes.`
+          })
+        }
+        catch (e) { logger.error(`Error getting battle cooldown for user: ${userId}: ${e}`); }
       });
     }
     catch (e) {
@@ -1037,62 +1093,47 @@ export default class Api {
       // make sure the user has that amount
       const userRef = this.database.ref(`users/${loaner}`);
       userRef.once('value', userSnapshot => {
-        if (userSnapshot.val()) {
-          if (userSnapshot.val().glimmer < amount) {
-            this.bot.sendMessage({
-              to: this.channelId,
-              message: `<@${loaner}> you don't have that much to loan.`
-            });
+        try {
+          if (userSnapshot.val()) {
+            if (userSnapshot.val().glimmer < amount) {
+              this.bot.sendMessage({
+                to: this.channelId,
+                message: `<@${loaner}> you don't have that much to loan.`
+              });
 
-            return;
-          }
-          else {
-            // make sure the user exists
-            const loanToRef = this.database.ref(`users/${loanTo}`);
-            loanToRef.once('value', loanToSnapshot => {
-              if (loanToSnapshot.val()) {
-                //loan the user the amount
-                this.fragmentGlimmerMainframe(amount);
-                // give loan to the other user
-                this.giveLoanTo(loanTo, amount, loaner, userSnapshot.val().username, loanToSnapshot.val().username);
-                this.bot.sendMessage({
-                  to: this.channelId,
-                  message: `<@${loaner}> just loaned ${amount} to <@${loanTo}>, mediated by the Global Glimmer Bank.`
-                });
-              }
-              else {
-                this.bot.sendMessage({
-                  to: this.channelId,
-                  message: `<@${loaner}> that user doesn't exist, guess we'll give that glimmer to the Global Glimmer Bank! :)`
-                });
-                this.takeLoanFrom(loaner, amount);
-                this.addAmountToBank(amount);
-              }
-            })
+              return;
+            }
+            else {
+              // make sure the user exists
+              const loanToRef = this.database.ref(`users/${loanTo}`);
+              loanToRef.once('value', loanToSnapshot => {
+                if (loanToSnapshot.val()) {
+                  //loan the user the amount
+                  this.fragmentGlimmerMainframe(amount);
+                  // give loan to the other user
+                  this.giveLoanTo(loanTo, amount, loaner, userSnapshot.val().username, loanToSnapshot.val().username);
+                  this.bot.sendMessage({
+                    to: this.channelId,
+                    message: `<@${loaner}> just loaned ${amount} to <@${loanTo}>, mediated by the Global Glimmer Bank.`
+                  });
+                }
+                else {
+                  this.bot.sendMessage({
+                    to: this.channelId,
+                    message: `<@${loaner}> that user doesn't exist, guess we'll give that glimmer to the Global Glimmer Bank! :)`
+                  });
+                  this.takeGlimmerFromUser(loaner, amount);
+                  this.addAmountToBank(amount);
+                }
+              })
+            }
           }
         }
+        catch (e) { logger.error(`Error in loan for user: ${userId} to ${laonTo} for amount ${amount}: ${e}`); }
       });
     }
     catch (e) {
       logger.error(`Error in loan from ${loaner} to ${loanTo} for amount: ${amount}: ${e}`);
-    }
-  }
-
-  // @summary takes a loan frmo userId
-  // @param userId - calling user
-  // @param amount - the amount the user chose to loan
-  takeLoanFrom(userId, amount) {
-    try {
-      // make sure the user has that amount
-      const userRef = this.database.ref(`users/${userId}`);
-      userRef.once('value', snapshot => {
-        if (snapshot.val()) {
-          this.takeGlimerFromUser(userId, amount);
-        }
-      });
-    }
-    catch (e) {
-      logger.error(`Error in takeLoanFrom for ${userId} for amount: ${amount}: ${e}`);
     }
   }
 
@@ -1106,33 +1147,36 @@ export default class Api {
     try {
       const userRef = this.database.ref(`users/${loanTo}`);
       userRef.once('value', snapshot => {
-        if (snapshot.val()) {
-          let oweTo = {};
-          if (snapshot.val().oweTo)
-            oweTo = snapshot.val().oweTo;
-          if (snapshot.val().oweTo && snapshot.val().oweTo[loaner])
-            oweTo[loaner] = { name: loanerName, amount: snapshot.val().oweTo[loaner].amount + amount };
-          else 
-            oweTo[loaner] = { name: loanerName, amount };
+        try {
+          if (snapshot.val()) {
+            let oweTo = {};
+            if (snapshot.val().oweTo)
+              oweTo = snapshot.val().oweTo;
+            if (snapshot.val().oweTo && snapshot.val().oweTo[loaner])
+              oweTo[loaner] = { name: loanerName, amount: snapshot.val().oweTo[loaner].amount + amount };
+            else 
+              oweTo[loaner] = { name: loanerName, amount };
 
-          userRef.update({ glimmer: snapshot.val().glimmer + amount, oweTo });
+            userRef.update({ glimmer: snapshot.val().glimmer + amount, oweTo });
 
-          // // update the loaners loans
-          const loanerRef = this.database.ref(`users/${loaner}`);
-          loanerRef.once('value', loanerSnapshot => {
-            if (loanerSnapshot.val()) {
-              let loans = {};
-              if (loanerSnapshot.val().loans) 
-                loans = loanerSnapshot.val().loans;
-              if (loanerSnapshot.val().loans && loanerSnapshot.val().loans[loanTo]) 
-                loans[loanTo] = { name: loanToName, amount: loanerSnapshot.val().loans[loanTo].amount + amount };
-              else 
-               loans[loanTo] = { name: loanToName, amount };
+            // // update the loaners loans
+            const loanerRef = this.database.ref(`users/${loaner}`);
+            loanerRef.once('value', loanerSnapshot => {
+              if (loanerSnapshot.val()) {
+                let loans = {};
+                if (loanerSnapshot.val().loans) 
+                  loans = loanerSnapshot.val().loans;
+                if (loanerSnapshot.val().loans && loanerSnapshot.val().loans[loanTo]) 
+                  loans[loanTo] = { name: loanToName, amount: loanerSnapshot.val().loans[loanTo].amount + amount };
+                else 
+                 loans[loanTo] = { name: loanToName, amount };
 
-              loanerRef.update({ loans });
-            }
-          });
+                loanerRef.update({ loans });
+              }
+            });
+          }
         }
+        catch (e) { logger.error(`Error in give loan to for user: ${loaner} to ${laonTo} for amount ${amount}: ${e}`); }
       });
 
     }
@@ -1147,27 +1191,30 @@ export default class Api {
     try {
       const user = this.database.ref(`users/${userId}`);
       user.once('value', snapshot => {
-        if (snapshot.val()) {
-          let loanedAmount = 0;
-          let message = `<@${userId}> you have loaned\n`;
-          if (snapshot.val().loans) {
-            for (let i in snapshot.val().loans) {
-              if (snapshot.val().loans[i].amount > 0) {
-                loanedAmount += snapshot.val().loans[i].amount;
-                message += `**${snapshot.val().loans[i].amount}** glimmer to **${snapshot.val().loans[i].name}**\n`;
+        try {
+          if (snapshot.val()) {
+            let loanedAmount = 0;
+            let message = `<@${userId}> you have loaned\n`;
+            if (snapshot.val().loans) {
+              for (let i in snapshot.val().loans) {
+                if (snapshot.val().loans[i].amount > 0) {
+                  loanedAmount += snapshot.val().loans[i].amount;
+                  message += `**${snapshot.val().loans[i].amount}** glimmer to **${snapshot.val().loans[i].name}**\n`;
+                }
               }
             }
-          }
 
-          if (loanedAmount === 0)
-            message = `<@${userId}> you haven't loaned anything!`;
-          else 
-            message += `**${loanedAmount}** glimmer loaned total.`
-          this.bot.sendMessage({
-            to: this.channelId,
-            message
-          });
+            if (loanedAmount === 0)
+              message = `<@${userId}> you haven't loaned anything!`;
+            else 
+              message += `**${loanedAmount}** glimmer loaned total.`
+            this.bot.sendMessage({
+              to: this.channelId,
+              message
+            });
+          }
         }
+        catch (e) { logger.error(`Error getting loans for user: ${userId}: ${e}`); }
       });
     } 
     catch (e) {
@@ -1181,27 +1228,30 @@ export default class Api {
     try {
       const user = this.database.ref(`users/${userId}`);
       user.once('value', snapshot => {
-        if (snapshot.val()) {
-          let owedAmount = 0;
-          let message = `<@${userId}> you owe\n`;
-          if (snapshot.val().oweTo) {
-            for (let i in snapshot.val().oweTo) {
-              if (snapshot.val().oweTo[i].amount > 0) {
-                owedAmount += snapshot.val().oweTo[i].amount;
-                message += `**${snapshot.val().oweTo[i].amount}** glimmer to **${snapshot.val().oweTo[i].name}**\n`;
+        try {
+          if (snapshot.val()) {
+            let owedAmount = 0;
+            let message = `<@${userId}> you owe\n`;
+            if (snapshot.val().oweTo) {
+              for (let i in snapshot.val().oweTo) {
+                if (snapshot.val().oweTo[i].amount > 0) {
+                  owedAmount += snapshot.val().oweTo[i].amount;
+                  message += `**${snapshot.val().oweTo[i].amount}** glimmer to **${snapshot.val().oweTo[i].name}**\n`;
+                }
               }
             }
-          }
 
-          if (owedAmount === 0)
-            message = `<@${userId}> you are debt free!`;
-          else 
-            message += `**${owedAmount}** glimmer in debt total.`
-          this.bot.sendMessage({
-            to: this.channelId,
-            message
-          });
+            if (owedAmount === 0)
+              message = `<@${userId}> you are debt free!`;
+            else 
+              message += `**${owedAmount}** glimmer in debt total.`
+            this.bot.sendMessage({
+              to: this.channelId,
+              message
+            });
+          }
         }
+        catch (e) { logger.error(`Error getting debt for user: ${userId}: ${e}`); }
       });
     } 
     catch (e) {
@@ -1217,48 +1267,54 @@ export default class Api {
     try {
       const collectRef = this.database.ref(`users/${collectFromId}`);
         collectRef.once('value', collectSnapshot => {
-        if (collectSnapshot.val() && collectSnapshot.val().oweTo && collectSnapshot.val().oweTo[userId]) {
-          // if they dont owe them that much
-          if (collectSnapshot.val().oweTo[userId].amount < amount) {
-            this.bot.sendMessage({
-              to: this.channelId,
-              message: `<@${userId}> they don't owe you that much.`
-            });
+          try {
+            if (collectSnapshot.val() && collectSnapshot.val().oweTo && collectSnapshot.val().oweTo[userId]) {
+              // if they dont owe them that much
+              if (collectSnapshot.val().oweTo[userId].amount < amount) {
+                this.bot.sendMessage({
+                  to: this.channelId,
+                  message: `<@${userId}> they don't owe you that much.`
+                });
+              }
+              else {
+                // update the users debt
+                // user pays the full amount
+                let oweTo = collectSnapshot.val().oweTo;
+                oweTo[userId].amount -= amount;
+                collectRef.update({ glimmer: collectSnapshot.val().glimmer - amount, oweTo });
+
+                // bank takes its share
+                let bankShare = Math.floor((amount * .2) > 1 ? (amount * .2) : 1);
+                let collectedAmount = amount - bankShare;
+                this.addAmountToBank(bankShare);
+
+                // update the users loans
+                const userRef = this.database.ref(`users/${userId}`);
+                userRef.once('value', userSnapshot => {
+                  try {
+                    let loans = userSnapshot.val().loans;
+                    loans[collectFromId].amount -= amount;
+                    userRef.update({ loans });
+                  }
+                  catch (e) { logger.error(`Error in adding loan object to user: ${userId} from ${collectFromId}: ${e}`); }
+                });
+
+                // repay the user
+                this.addGlimmerToUser(userId, collectedAmount);
+                this.bot.sendMessage({
+                  to: this.channelId,
+                  message: `<@${userId}> you collected **${collectedAmount}** glimmer from <@${collectFromId}>. The Global Glimmer Bank took its collection fee at **${bankShare}** glimmer.`
+                });
+              }
+            }
+            else {
+              this.bot.sendMessage({
+                to: this.channelId,
+                message: `<@${userId}> they don't owe you anything.`
+              });
+            }
           }
-          else {
-            // update the users debt
-            // user pays the full amount
-            let oweTo = collectSnapshot.val().oweTo;
-            oweTo[userId].amount -= amount;
-            collectRef.update({ glimmer: collectSnapshot.val().glimmer - amount, oweTo });
-
-            // bank takes its share
-            let bankShare = Math.floor((amount * .2) > 1 ? (amount * .2) : 1);
-            let collectedAmount = amount - bankShare;
-            this.addAmountToBank(bankShare);
-
-            // update the users loans
-            const userRef = this.database.ref(`users/${userId}`);
-            userRef.once('value', userSnapshot => {
-              let loans = userSnapshot.val().loans;
-              loans[collectFromId].amount -= amount;
-              userRef.update({ loans });
-            });
-
-            // repay the user
-            this.addGlimerToUser(userId, collectedAmount);
-            this.bot.sendMessage({
-              to: this.channelId,
-              message: `<@${userId}> you collected **${collectedAmount}** glimmer from <@${collectFromId}>. The Global Glimmer Bank took its collection fee at **${bankShare}** glimmer.`
-            });
-          }
-        }
-        else {
-          this.bot.sendMessage({
-            to: this.channelId,
-            message: `<@${userId}> they don't owe you anything.`
-          });
-        }
+          catch (e) { logger.error(`Error in collect for user: ${userId} from ${collectFromId} for amount ${amount}: ${e}`); }
       });
     }
     catch (e) {
@@ -1274,61 +1330,67 @@ export default class Api {
     try {
       const userRef = this.database.ref(`users/${userId}`);
       userRef.once('value', userSnapshot => {
-        if (userSnapshot.val() && userSnapshot.val().oweTo && userSnapshot.val().oweTo[repayToId]) {
-          // if they dont owe them that much
-          if (userSnapshot.val().oweTo[repayToId].amount < amount) {
-            this.bot.sendMessage({
-              to: this.channelId,
-              message: `<@${userId}> you don't owe ${userSnapshot.val().oweTo[repayToId].name} that much.`
-            });
-          }
-          else {
-            if (userSnapshot.val().glimmer < amount) {
+        try {
+          if (userSnapshot.val() && userSnapshot.val().oweTo && userSnapshot.val().oweTo[repayToId]) {
+            // if they dont owe them that much
+            if (userSnapshot.val().oweTo[repayToId].amount < amount) {
               this.bot.sendMessage({
                 to: this.channelId,
-                message: `<@${userId}> you don't have enough glimmer to repay that much.`
+                message: `<@${userId}> you don't owe ${userSnapshot.val().oweTo[repayToId].name} that much.`
               });
             }
             else {
-              // update the users debt
-              let oweTo = userSnapshot.val().oweTo;
-              oweTo[repayToId].amount -= amount;
-
-              // update the loaners loans
-              const repayToRef = this.database.ref(`users/${repayToId}`);
-              repayToRef.once('value', repaySnapshot => {
-                let loans = repaySnapshot.val().loans;
-                loans[userId].amount -= amount;
-                repayToRef.update({ loans });
-              });
-
-              // bank pays 20% of repayments, and adds 20% interest
-              let bankShare = Math.floor((amount * .2) > 1 ? (amount * .2) : 1);
-              let interest = bankShare;
-              let payAmount = amount - bankShare;
-              if (payAmount < 1) {
-                payAmount = 1;
-                bankShare = 0;
+              if (userSnapshot.val().glimmer < amount) {
+                this.bot.sendMessage({
+                  to: this.channelId,
+                  message: `<@${userId}> you don't have enough glimmer to repay that much.`
+                });
               }
-              this.addAmountToBank(0 - bankShare - interest);
-              userRef.update({ glimmer: userSnapshot.val().glimmer - payAmount, oweTo });
+              else {
+                // update the users debt
+                let oweTo = userSnapshot.val().oweTo;
+                oweTo[repayToId].amount -= amount;
+
+                // update the loaners loans
+                const repayToRef = this.database.ref(`users/${repayToId}`);
+                repayToRef.once('value', repaySnapshot => {
+                  try {
+                    let loans = repaySnapshot.val().loans;
+                    loans[userId].amount -= amount;
+                    repayToRef.update({ loans });
+                  }
+                  catch (e) { logger.error(`Error adding loans object to user: ${repayToId} from ${userId} for ${amount}: ${e}`); }
+                });
+
+                // bank pays 20% of repayments, and adds 20% interest
+                let bankShare = Math.floor((amount * .2) > 1 ? (amount * .2) : 1);
+                let interest = bankShare;
+                let payAmount = amount - bankShare;
+                if (payAmount < 1) {
+                  payAmount = 1;
+                  bankShare = 0;
+                }
+                this.addAmountToBank(0 - bankShare - interest);
+                userRef.update({ glimmer: userSnapshot.val().glimmer - payAmount, oweTo });
 
 
-              // repay the user
-              this.addGlimerToUser(repayToId, amount + interest);
-              this.bot.sendMessage({
-                to: this.channelId,
-                message: `<@${userId}> you repayed **${payAmount}** glimmer to ${userSnapshot.val().oweTo[repayToId].name}. The Global Glimmer Bank payed **${bankShare}** glimmer of your debt for you, and added **${interest}** glimmer interest to the repayment.`
-              });
+                // repay the user
+                this.addGlimmerToUser(repayToId, amount + interest);
+                this.bot.sendMessage({
+                  to: this.channelId,
+                  message: `<@${userId}> you repayed **${payAmount}** glimmer to ${userSnapshot.val().oweTo[repayToId].name}. The Global Glimmer Bank payed **${bankShare}** glimmer of your debt for you, and added **${interest}** glimmer interest to the repayment.`
+                });
+              }
             }
           }
+          else {
+            this.bot.sendMessage({
+              to: this.channelId,
+              message: `<@${userId}> you don't owe them anything.`
+            });
+          }
         }
-        else {
-          this.bot.sendMessage({
-            to: this.channelId,
-            message: `<@${userId}> you don't owe them anything.`
-          });
-        }
+        catch (e) { logger.error(`Error repaying ${amount} to user: ${repayToId} from ${userId}: ${e}`); }
       });
     }
     catch (e) {
