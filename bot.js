@@ -283,9 +283,12 @@ bot.on('message', function (user, userId, channelId, message, evt) {
     }
 
     // check who you owe to
-    if (message === '!debt') {
+    if (message === '!debt') 
       api.getDebt(userId);
-    }
+
+     // check who you owe to
+    if (message === '!loans') 
+      api.getLoans(userId);
 
     // mainframe fragementation rate
     if (message === '!frag') {
@@ -319,6 +322,11 @@ bot.on('message', function (user, userId, channelId, message, evt) {
         to: channelId,
         message
       });
+    }
+
+    // list all commands
+    if (message === '!commands') {
+
     }
   }
   catch (e) {

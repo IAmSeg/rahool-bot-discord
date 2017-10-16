@@ -274,12 +274,20 @@ export default class Api {
       const fragRef = this.database.ref(`glimmerMainframe`);
       fragRef.once('value', s => {
         fragRef.update({ fragmentationRate: s.val().fragmentationRate - fragmentationAmount });
+
+        const userRef = this.database.ref(`users/${userId}`);
+        userRef.once('value', us => {
+          userRef.update({ glimmer: us.val().glimmer - amount });
+        });
       });
+
 
       this.bot.sendMessage({
         to: this.channelId,
         message: `<@${userId}> the Global Glimmer Bank thanks you for your donation to defragmentation repairs. Your donation helped defragment the Glimmer Mainframe by **${fragmentationAmount}%**.`
       });
+
+      this.getFragmentationRate();
     } 
     catch (e) {
       logger.error(`Error in defragGlimmerMainframe for amount ${amount}: ${e}`);
@@ -1046,7 +1054,7 @@ export default class Api {
                 //loan the user the amount
                 this.fragmentGlimmerMainframe(amount);
                 // give loan to the other user
-                this.giveLoanTo(loanTo, amount, loaner, userSnapshot.val().username);
+                this.giveLoanTo(loanTo, amount, loaner, userSnapshot.val().username, loanToSnapshot.val().username);
                 this.bot.sendMessage({
                   to: this.channelId,
                   message: `<@${loaner}> just loaned ${amount} to <@${loanTo}>, mediated by the Global Glimmer Bank.`
@@ -1093,7 +1101,8 @@ export default class Api {
   // @param amount - the amount the user chose to loan
   // @param loaner - the id of the user who loaned them glimmer
   // @param loanerName - the name of the user who loaned them glimmer
-  giveLoanTo(loanTo, amount, loaner, loanerName) {
+  // @param loanerTo - the name of the user who is receiving the loan
+  giveLoanTo(loanTo, amount, loaner, loanerName, loanToName) {
     try {
       const userRef = this.database.ref(`users/${loanTo}`);
       userRef.once('value', snapshot => {
@@ -1109,26 +1118,60 @@ export default class Api {
           userRef.update({ glimmer: snapshot.val().glimmer + amount, oweTo });
 
           // // update the loaners loans
-          // const loanerRef = this.database.ref(`users/${loaner}`);
-          // loanerRef.once('value', s => {
-          //   if (s.val()) {
-          //     let loans = {};
-          //     if (s.val().loans)
-          //       loans = snapshot.val().loans;
-          //     if (s.val().loans && s.val().loans[loanTo])
-          //       loans[loanTo] = { name: s.val().name, amount: s.val().loans[loanTo].amount + amount };
-          //     else 
-          //      loans[loanTo] = { name: s.val().name, amount };
+          const loanerRef = this.database.ref(`users/${loaner}`);
+          loanerRef.once('value', loanerSnapshot => {
+            if (loanerSnapshot.val()) {
+              let loans = {};
+              if (loanerSnapshot.val().loans) 
+                loans = loanerSnapshot.val().loans;
+              if (loanerSnapshot.val().loans && loanerSnapshot.val().loans[loanTo]) 
+                loans[loanTo] = { name: loanToName, amount: loanerSnapshot.val().loans[loanTo].amount + amount };
+              else 
+               loans[loanTo] = { name: loanToName, amount };
 
-          //     loanerRef.update({ loans });
-          //   }
-          // });
+              loanerRef.update({ loans });
+            }
+          });
         }
       });
 
     }
     catch (e) {
       logger.error(`Error in giveLoanTo for ${loanTo} for amount: ${amount}: ${e}`);
+    }
+  }
+
+  // @summary checks loans for a user
+  // @param userId - user to check loans for
+  getLoans(userId) {
+    try {
+      const user = this.database.ref(`users/${userId}`);
+      user.once('value', snapshot => {
+        if (snapshot.val()) {
+          let loanedAmount = 0;
+          let message = `<@${userId}> you have loaned\n`;
+          if (snapshot.val().loans) {
+            for (let i in snapshot.val().loans) {
+              if (snapshot.val().loans[i].amount > 0) {
+                loanedAmount += snapshot.val().loans[i].amount;
+                message += `**${snapshot.val().loans[i].amount}** glimmer to **${snapshot.val().loans[i].name}**\n`;
+              }
+            }
+          }
+
+          if (loanedAmount === 0)
+            message = `<@${userId}> you haven't loaned anything!`;
+          else 
+            message += `**${loanedAmount}** glimmer loaned total.`
+          this.bot.sendMessage({
+            to: this.channelId,
+            message
+          });
+        }
+      });
+    } 
+    catch (e) {
+      logger.error(`Error in getDebt for user: ${userId}: ${e}`);
     }
   }
  
@@ -1194,6 +1237,14 @@ export default class Api {
             let collectedAmount = amount - bankShare;
             this.addAmountToBank(bankShare);
 
+            // update the users loans
+            const userRef = this.database.ref(`users/${userId}`);
+            userRef.once('value', userSnapshot => {
+              let loans = userSnapshot.val().loans;
+              loans[collectFromId].amount -= amount;
+              userRef.update({ loans });
+            });
+
             // repay the user
             this.addGlimerToUser(userId, collectedAmount);
             this.bot.sendMessage({
@@ -1242,6 +1293,14 @@ export default class Api {
               // update the users debt
               let oweTo = userSnapshot.val().oweTo;
               oweTo[repayToId].amount -= amount;
+
+              // update the loaners loans
+              const repayToRef = this.database.ref(`users/${repayToId}`);
+              repayToRef.once('value', repaySnapshot => {
+                let loans = repaySnapshot.val().loans;
+                loans[userId].amount -= amount;
+                repayToRef.update({ loans });
+              });
 
               // bank pays 20% of repayments, and adds 20% interest
               let bankShare = Math.floor((amount * .2) > 1 ? (amount * .2) : 1);
