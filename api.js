@@ -75,6 +75,8 @@ export default class Api {
       fragRef.once('value', s => {
         fragRef.update({ fragmentationRate: s.val().fragmentationRate + fragmentationAmount, transactionCount: s.val().transactionCount + 1 });
       });
+
+      this.checkMainframeFragmentation();
     } 
     catch (e) {
       logger.error(`Error in fragmentGlimmerMainframe for amount ${amount}: ${e}`);
