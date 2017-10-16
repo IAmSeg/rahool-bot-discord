@@ -1,7 +1,7 @@
 const Discord = require('discord.io');
 const logger = require('winston');
 const auth = require('./auth.json');
-import api from './api';
+import Api from './api';
 import utilities from './utilities';
 import vendorEngramsConfig from './vendorEngramsConfig';
 
@@ -45,6 +45,8 @@ bot.on('ready', function (evt) {
 
 bot.on('message', function (user, userId, channelId, message, evt) {
   try {
+    const api = new Api(bot, channelId);
+
     // dont respond to ourself
     if (userId == bot.id)
       return;
@@ -56,30 +58,30 @@ bot.on('message', function (user, userId, channelId, message, evt) {
     // gamble
     if (message.split(' ')[0] === '!gamble') {
       let amount = message.split(' ')[1];
-      api.gambleGlimmer(userId, amount, bot, channelId);
+      api.gambleGlimmer(userId, amount);
     }
 
     // get current glimmer for a user
     if (message === '!glimmer')
-      api.getCurrentGlimmer(userId, bot, channelId);
+      api.getCurrentGlimmer(userId);
 
     // get current light for a user
     if (message === '!light')
-     api.getCurrentLight(userId, bot, channelId);
+     api.getCurrentLight(userId);
 
     if (message === '!buyengram') {
       let roll = Math.floor(utilities.randomNumberBetween(1, 100));
       if (roll < 5)
-        api.rahoolIsADick(userId, bot, channelId);
+        api.rahoolIsADick(userId);
       else
-        api.getEngram(userId, bot, channelId);
+        api.getEngram(userId);
     }
 
     if (message === '!lightrank')
-      api.getLightRank(bot, channelId);
+      api.getLightRank();
 
     if (message === '!loadout')
-      api.getLoadout(userId, bot, channelId);
+      api.getLoadout(userId);
 
     if (message === '!gamblehelp') {
       let message = `<@${userId}> type !gamble amount to gamble your glimmer. The bot will roll a number between 1 and 100. The higher the number, the better payout you will receive. If the number is very low, you may lose your glimmer. Gamble wisely!`;
@@ -90,7 +92,7 @@ bot.on('message', function (user, userId, channelId, message, evt) {
     }
 
     if (message === '!bankamount')
-      api.getBankAmount(bot, channelId);
+      api.getBankAmount();
 
     if (message === '!howtorobbank') {
       let message =`The global glimmer bank is protected by a secret number that is randomized between 1 and 100 constantly. `;
@@ -111,7 +113,7 @@ bot.on('message', function (user, userId, channelId, message, evt) {
           message: `<@${userId}>, you should probably guess a secret number (1-100) if you wanna rob the bank. **!robbank SECRET_NUMBER**`
         });
       }
-      api.robBank(userId, guess, bot, channelId);
+      api.robBank(userId, guess);
     }
 
 
@@ -146,11 +148,11 @@ bot.on('message', function (user, userId, channelId, message, evt) {
         });
       }
       else 
-        api.battle(userId, bot, channelId, tier);
+        api.battle(userId, tier);
     }
 
     if (message === '!battlecooldown')
-      api.getBattleCooldown(userId, bot, channelId);
+      api.getBattleCooldown(userId);
 
     //loan
     if (message.split(' ')[0] === '!loan') {
@@ -190,7 +192,7 @@ bot.on('message', function (user, userId, channelId, message, evt) {
             });
           }
           else 
-            api.loan(userId, amount, loanToId, bot, channelId);
+            api.loan(userId, amount, loanToId);
         }
       }
     }
@@ -233,7 +235,7 @@ bot.on('message', function (user, userId, channelId, message, evt) {
             });
           }
           else 
-            api.repay(userId, amount, repayToId, bot, channelId);
+            api.repay(userId, amount, repayToId);
         }
       }
     }
@@ -276,14 +278,18 @@ bot.on('message', function (user, userId, channelId, message, evt) {
           });
         }
         else 
-          api.collect(userId, amount, collectFromId, bot, channelId);
+          api.collect(userId, amount, collectFromId);
       }
     }
 
-
     // check who you owe to
     if (message === '!debt') {
-      api.getDebt(userId, bot, channelId);
+      api.getDebt(userId);
+    }
+
+    // mainframe fragementation rate
+    if (message === '!frag') {
+      api.getFragmentationRate();
     }
   }
   catch (e) {
@@ -294,7 +300,8 @@ bot.on('message', function (user, userId, channelId, message, evt) {
 // set interval to check for 300 level vendor engrams
 setInterval(() => {
   try {
-    api.get300Vendors(bot, vendorEngramsConfig.channelId);
+    let vendorApi = new Api(bot, vendorEngramsConfig.channelId)
+    vendorApi.get300Vendors();
   }
   catch (e) {
     logger.error(`Error getting vendor engrams: ${e}.`);
