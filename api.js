@@ -600,7 +600,7 @@ export default class Api {
   // @param userId - calling user
   getEngram(userId) {
     try {
-      this.fragmentGlimmerMainframe(amount);
+      this.fragmentGlimmerMainframe(100);
       const user = this.database.ref(`users/${userId}`);
       user.once('value', snapshot => {
         try {
