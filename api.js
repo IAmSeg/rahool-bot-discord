@@ -123,6 +123,16 @@ const api = {
       const userRef = this.database.ref(`users/${userId}`);
       const bankRef = this.database.ref(`glimmerBank`);
       userRef.once('value', snapshot => {
+        // make sure they're not on bank cooldown
+        if (snapshot.val().bankCooldown) {
+          bot.sendMessage({
+            to: channelId,
+            message: `<@${userId}>, you are on hiatus from your previous bank robbery attempt. Lay low for a bit.`
+          });       
+
+          return;
+        }
+
         let userGlimmer = snapshot.val().glimmer; 
         if (userGlimmer < -100) {
           bot.sendMessage({
@@ -131,6 +141,12 @@ const api = {
           });
           return;
         }
+
+        // bank cooldown
+        userRef.update({ bankCooldown: true });
+        setTimeout(() => {
+          userRef.update({ bankCooldown: false });
+        }, 60000);
 
         // successful bank rob
         if (guess == secret) {
@@ -797,6 +813,68 @@ const api = {
     }
     catch (e) {
       logger.error(`Error in battle for user: ${userId}: ${e}.`);
+    }
+  },
+
+  // @summary starts a raid battle. users will have 60 seconds to join in once the battle starts
+  // @param userId - calling user
+  // @param bot - this bot, duh
+  // @channelId - id of the channel to write to
+  raid(userId, bot, channelId) {
+    try {
+      const raidRef = this.database.ref(`raid`);
+      raidRef.once('value', snapshot => {
+        // raid cooldown
+        if (snapshot.val().raidCooldown) {
+          bot.sendMessage({
+            to: channelId,
+            message: `<@${userId}> the Vanguard has forbidden raiding for a short time due to the recent raid activity.`
+          });
+
+          return;
+        }
+        // raid is about to start, add users to existing raid
+        if (snapshot.val().starting) {
+          let currentRaidMembers = snapshot.val().users;
+          currentRaidMembers.push(userId);
+          raidRef.update({ users: currentRaidMembers });
+
+          bot.sendMessage({
+            to: channelId,
+            message: `<@${userId}> has joined the raid group. Type **!raid** to join.`
+          });
+        }
+        else {
+          raidRef.update({ starting: true, users: [ userId ] });
+          bot.sendMessage({
+            to: channelId,
+            message: `<@${userId}> has started a raid group, you have 60 seconds to join. Type **!raid** to join.`
+          });
+
+          // start the raid in 60 seconds
+          setTimeout(() => {
+            raidRef.update({ starting: false, raidCooldown: true });
+
+            let userList = snapshot.val().users.reduce((list, user) => `${list} <@${user}>\n`, ``);
+            let enemyLight = utilities.randomNumberBetween(battleConfig.raidLightConfig.min * lightLevelConfig.maxLight, battleConfig.raidLightConfig.max * lightLevelConfig.maxLight);
+            let totalLight = snapshot.val().users.reduce((sum, user) => sum + lightLevelConfig.calculateLightLevel(user), 0);
+            // calculate chance to win
+            let chanceToWin = battleConfig.calculateChanceToWin(totalLight, enemyLight, 9);
+            bot.sendMessage({
+              to: channelId,
+              message: `${userList} at your current combined light of **${totalLight}** you have a **${chanceToWin}%** chance to win`
+            });
+          }, 60000);
+
+          // reset the raid cooldown
+          setTimeout(() => {
+            raidRef.update({ raidCooldown: false });
+          }, 5 * 60 * 1000);
+        }
+      })
+    }
+    catch (e) {
+      logger.error(`Error in raid for ${userId}: ${e}`);
     }
   },
 

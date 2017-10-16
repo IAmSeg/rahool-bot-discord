@@ -24,6 +24,62 @@ export default {
     },
   ],
 
+  raidBosses: [
+    { 
+      name: 'Vault of Glass',
+      bosses: [
+        'The Oracles',
+        'The Templar',
+        'The Gorgons',
+        'The Gatekeeper',
+        'Atheon, Time\'s Conflux',
+      ] 
+    },
+    { 
+      name: 'The Ocean of Storms',
+      bosses: [
+        'The Gatekeeper Knights',
+        'Ir Yut, The Deathsinger',
+        'Crota, Son of Oryx'
+      ] 
+    },
+    { 
+      name: 'The Prison of Elders',
+      bosses: [
+        'Skolas, Kell of Kells'
+      ] 
+    },
+    { 
+      name: 'The Dreadnaught',
+      bosses: [
+        'The Warpriest',
+        'Golgoroth',
+        'The Daughters of Oryx',
+        'Oryx, The Taken King'
+      ] 
+    },
+    { 
+      name: 'The Perfection Complex',
+      bosses: [
+        'Vosik, the Archpriest',
+        'The Siege Engine',
+        'Aksis, Archon Prime'
+      ] 
+    }
+  ],
+
+  raidLightConfig: {
+    min: 20,
+    max: 28.5,
+    c1: .0145,
+    c2: -20,
+  },
+
+  raidGlimmerConfig: {
+    min: 50000,
+    max: 200000
+  },
+
   enemyLightConfig: [
     {
       min: .55,
@@ -75,32 +131,6 @@ export default {
     }
   ],
 
-  // @summary - calculates the users chance to win a battle based on their light, the enemy light and the enemy tier
-  // @param yourlight - current users light
-  // @param enemyLight - enemyLight, between min/max of tier above
-  // @param tier - tier of enemy, can be seen above
-  // @returns chance user has to win battle against enemy
-  calculateChanceToWin(yourLight, enemyLight, enemyTier) {
-    let chanceToWin = (((this.enemyLightConfig[enemyTier].c1 * yourLight + this.enemyLightConfig[enemyTier].c2) + (yourLight * 100 / enemyLight)) / 2).toFixed(2);
-    return chanceToWin >= 100 ? 99.99 : chanceToWin;
-  },
-
-  // @summary - calculates the users glimmer they will win 
-  // @param chanceToWin - users chance to win, calculated above
-  // @param tier - tier of enemy, can be seen above
-  // @returns glimmer won against the enemy
-  calculateGlimmerWon(chanceToWin, tier) {
-    return Math.floor(utilities.randomNumberBetween(this.enemyGlimmerConfig[tier].min, this.enemyGlimmerConfig[tier].max) * (1 + (1 - (chanceToWin / 100))));
-  },
-
-  // @summary - calculates the users glimmer they will lose
-  // @param chanceToWin - users chance to win, calculated above
-  // @param tier - tier of enemy, can be seen above
-  // @returns glimmer lost against the enemy
-  calculateGlimmerLost(chanceToWin, tier) {
-    return Math.floor(utilities.randomNumberBetween(this.enemyGlimmerConfig[tier].min, this.enemyGlimmerConfig[tier].max / 3) * (1 + (chanceToWin / 100)));
-  },
-
   enemyGlimmerConfig: [
     {
       min: 1,
@@ -135,6 +165,52 @@ export default {
       max: 5000 
     }
   ],
+
+  // @summary - calculates the users chance to win a battle based on their light, the enemy light and the enemy tier
+  // @param yourlight - current users light
+  // @param enemyLight - enemyLight, between min/max of tier above
+  // @param tier - tier of enemy, can be seen above
+  // @returns chance user has to win battle against enemy
+  calculateChanceToWin(yourLight, enemyLight, enemyTier) {
+    // raid boss
+    if (enemyTier === 9) {
+      let chanceToWin = (((this.raidLightConfig.c1 * yourLight + this.raidLightConfig.c2) + (yourLight * 100 / enemyLight)) / 2).toFixed(2);
+      if (chanceToWin < 0)
+        return .01;
+      if (chanceToWin > 100)
+        return 99.99;
+
+      return chanceToWin;
+    }
+    else {
+      let chanceToWin = (((this.enemyLightConfig[enemyTier].c1 * yourLight + this.enemyLightConfig[enemyTier].c2) + (yourLight * 100 / enemyLight)) / 2).toFixed(2);
+      return chanceToWin >= 100 ? 99.99 : chanceToWin;
+    }
+  },
+
+  // @summary - calculates the users glimmer they will win 
+  // @param chanceToWin - users chance to win, calculated above
+  // @param tier - tier of enemy, can be seen above
+  // @returns glimmer won against the enemy
+  calculateGlimmerWon(chanceToWin, tier) {
+    // raid boss
+    if (tier === 9) {
+      return Math.floor(utilities.randomNumberBetween(this.raidGlimmerConfig.min, this.raidGlimmerConfig.max) * (1 + (1 - (chanceToWin / 100))));
+    }
+    return Math.floor(utilities.randomNumberBetween(this.enemyGlimmerConfig[tier].min, this.enemyGlimmerConfig[tier].max) * (1 + (1 - (chanceToWin / 100))));
+  },
+
+  // @summary - calculates the users glimmer they will lose
+  // @param chanceToWin - users chance to win, calculated above
+  // @param tier - tier of enemy, can be seen above
+  // @returns glimmer lost against the enemy
+  calculateGlimmerLost(chanceToWin, tier) {
+    // raid boss
+    if (tier === 9) {
+      return Math.floor(utilities.randomNumberBetween(this.raidGlimmerConfig.min, this.raidGlimmerConfig.max / 8) * (1 + (chanceToWin / 100)));
+    }
+    return Math.floor(utilities.randomNumberBetween(this.enemyGlimmerConfig[tier].min, this.enemyGlimmerConfig[tier].max / 3) * (1 + (chanceToWin / 100)));
+  },
 
   battleStartMessages: [
     'While patrolling on',
