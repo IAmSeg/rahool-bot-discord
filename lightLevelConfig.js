@@ -12,7 +12,7 @@ import utilities from './utilities';
 
 
 const lightLevelConfig = {
-  maxLight: 300,
+  maxLight: 310,
   
   // config for current destiny calculation of light levels
   kineticMult: .143,
@@ -88,8 +88,13 @@ const lightLevelConfig = {
       return (currentLight <= (tier.max * this.maxLight) && currentLight >= (tier.min * this.maxLight));
     });
 
-    if (eligibleTiers.length == 1)
-      return eligibleTiers[0];
+    if (eligibleTiers.length == 1) {
+      // if they're only in exotic range, we need to include legendaries also
+      if (eligibleTiers[0].name === 'Exotic')
+        eligibleTiers = this.rarityTiers.filter(tier => tier.name === 'Exotic' || tier.name === 'Legendary');
+      else
+        return eligibleTiers[0];
+    }
 
     let higherTier = eligibleTiers[0].level < eligibleTiers[1].level ? eligibleTiers[1] : eligibleTiers[0];
     let lowerTier = eligibleTiers[0].level < eligibleTiers[1].level ? eligibleTiers[0] : eligibleTiers[1];
@@ -118,7 +123,13 @@ const lightLevelConfig = {
     if (newLight > Math.floor(engramTier.max * this.maxLight) && currentLight < Math.floor(this.maxLight * 0.9667))
       newLight = (engramTier.max * this.maxLight);
 
-    return Math.floor(newLight > this.maxLight ? this.maxLight : newLight);
+    // if the engram tier is exotic, it can go above max light
+    if (engramTier.name === 'Exotic') {
+      let exoticMax = Math.floor(this.maxLight * engramTier[max]);
+      return Math.floor(newLight > exoticMax ? exoticMax : newLight);
+    }
+    else
+      return Math.floor(newLight > this.maxLight ? this.maxLight : newLight);
   }
 }
 

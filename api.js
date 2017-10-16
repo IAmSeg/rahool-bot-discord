@@ -753,7 +753,10 @@ const api = {
           if (won) {
             glimmerWonOrLost = battleConfig.calculateGlimmerWon(chanceToWin, tier);
             let randomMessage = utilities.getRandomFrom(battleConfig.successMessages);
-            let afterMessage = `After a difficult fight <@${userId}>, ${randomMessage} the **${selectedEnemy}**. You walk away the victor, earning **${glimmerWonOrLost} glimmer** in the process.`;
+            let afterMessage = `After a difficult fight <@${userId}>, ${randomMessage} the **${selectedEnemy}**. You walk away the victor, and the Global Glimmer Bank pays **${glimmerWonOrLost} glimmer** for your valient effort.`;
+            // bank pays
+            this.addAmountToBank(Number(0 - glimmerWonOrLost));
+
             setTimeout(() => {
               bot.sendMessage({
                 to: channelId,
