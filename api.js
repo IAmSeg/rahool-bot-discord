@@ -23,13 +23,19 @@ firebase.auth().signInWithEmailAndPassword(config.credentials.email, config.cred
 });
 
 export default class Api {
+  // @summary - constructor for class
+  // @param bot - current instance of bot
+  // @channelId - channel to write any messages to 
   constructor(bot, channelId) {
-
     this.database = firebase.database();
     
     this.bot = bot;
     this.channelId = channelId;
   }
+
+  /* -------------------- *\
+       &user functions
+  \* ---------------------*/
 
   // @summary general function that writes user initial data
   // @param userId - user to write data for
@@ -64,6 +70,182 @@ export default class Api {
       logger.error(`Error in writeData for ${userId}: ${e}`);
     }
   }
+
+  // @summary - gives glimmer to a user
+  // @param userId - user to give glimmer to
+  // @param amount
+  addGlimerToUser(userId, amount) {
+    this.fragmentGlimmerMainframe(amount);
+    const user = this.database.ref(`users/${userId}`);
+    user.once('value', snapshot => {
+      user.update({ glimmer: snapshot.val().glimmer + amount });
+    });
+  }
+
+  // @summary - takes glimmer from a user
+  // @param userId - user to take glimmer from
+  // @param amount
+  takeGlimerFromUser(userId, amount) {
+    this.fragmentGlimmerMainframe(amount);
+    const user = this.database.ref(`users/${userId}`);
+    user.once('value', snapshot => {
+      user.update({ glimmer: snapshot.val().glimmer - amount });
+    });
+  }
+
+  // @summary updates glimmer for a particular user when they type
+  // +5 glimmer for each message
+  // @param userId - calling user
+  // @username - human friendly username of the user
+  updateGlimmer(userId, username) {
+    try {
+      this.fragmentGlimmerMainframe(5);
+      // add 5 to the bank
+      this.addAmountToBank(5);
+      const user = this.database.ref(`users/${userId}`);
+      user.once('value', snapshot => {
+        if (snapshot.val())
+          snapshot.ref.update({ glimmer: snapshot.val().glimmer + 5, username });
+        else
+          this.writeData(userId, username);
+      });
+    }
+    catch (e) {
+      logger.error(`Error in updateGlimmer for ${userId}: ${e}.`);
+    }
+  }
+
+  // @summary gets current glimmer for the calling user
+  // @param userId - calling user
+  getCurrentGlimmer(userId) {
+    try {
+      const user = this.database.ref(`users/${userId}`);
+      user.once('value', snapshot => {
+        if (snapshot.val())
+          this.bot.sendMessage({
+            to: this.channelId,
+            message: `Current glimmer for <@${userId}>: ${snapshot.val().glimmer}.`
+          });
+        else
+          this.bot.sendMessage({
+            to: this.channelId,
+            message: `No glimmer for <@${userId}>.`
+          });
+      });
+    }
+    catch (e) {
+      logger.error(`Error in getCurrentGlimmer for ${userId}: ${e}.`);
+    }
+  }
+
+  /* -------------------- *\
+       &end user functions
+  \* ---------------------*/
+
+  /* ------------------------- *\
+          &gambling 
+  \* ------------------------- */
+
+  // @summary gets a list of users and their light levels and sorts them from highest to lowest
+  // 17% chance of winning your gamble, 
+  // 12% chance of doubling your wager, 
+  // 5% chance of tripling it
+  // 23% chance of breaking even, 
+  // 36% chance of losing the gamble,
+  // 7% chance of losing double your gamble
+  // the higher the roll the better
+  // @param userId - calling user
+  // @param amount - the amount the user chose to gamble
+  gambleGlimmer(userId, amount) {
+    try {
+      this.fragmentGlimmerMainframe(amount);
+      if (isNaN(amount)) {
+        this.bot.sendMessage({
+          to: this.channelId,
+          message: `<@${userId}> ${amount} isn't a number, dumbass.`
+        });
+
+        return;
+      }
+
+      if (amount < 0) {
+        this.bot.sendMessage({
+          to: this.channelId,
+          message: `<@${userId}> how you gonna gamble a negative amount? Get outta here.`
+        });
+
+        return;
+      }
+
+      const roll = utilities.randomNumberBetween(1, 100);
+      let doubleLossChance = 7;
+      let lossChance = 36;
+      let breakEvenChance = 23;
+      let tripleChance = 5;
+      let doubleChance = 12;
+      let winChance = 17;
+
+      let newAmount = amount;
+      let message = ``;
+      if (roll <= 7) {
+        newAmount = 0 - amount - amount;
+        this.addAmountToBank(Math.abs(newAmount));
+        message = `rolled a ${roll} (${doubleLossChance}% chance). You have a problem and lost twice your gamble, ${amount * 2} glimmer.`
+      }
+      else if (roll > 7 && roll <= 43) {
+        newAmount = 0 - amount;
+        this.addAmountToBank(Math.abs(newAmount));
+        message = `rolled a ${roll} (${lossChance}% chance). You lost your gamble and lost ${amount} glimmer..`
+      }
+      else if (roll > 43 && roll <= 66) {
+        newAmount = 0;
+        message = `rolled a ${roll} (${breakEvenChance}% chance). You broke even and kept your ${amount} glimmer.`
+      }
+      else if (roll > 66 && roll <= 83) {
+        newAmount = amount;
+        message = `rolled a ${roll} (${winChance}% chance). You won your gamble and won ${newAmount} glimmer!`
+      }
+      else if (roll > 83 && roll <= 95) {
+        newAmount = amount * 2;
+        message = `rolled a ${roll} (${doubleChance}% chance). You doubled your gamble and won ${newAmount} glimmer!`
+      }
+      else {
+        newAmount = amount * 3;
+        message = `rolled a ${roll} (${tripleChance}% chance). You tripled your gamble and won ${newAmount} glimmer!`
+      }
+
+      const user = this.database.ref(`users/${userId}`);
+      user.once('value', snapshot => {
+        if (snapshot.val()) {
+          if (snapshot.val().glimmer < amount) {
+            this.bot.sendMessage({
+              to: this.channelId,
+              message: `<@${userId}> you don't have that much glimmer to gamble.`
+            });
+            return;
+          }
+          this.bot.sendMessage({
+            to: this.channelId,
+            message: `<@${userId}> ${message}`
+          });
+          let glimmer = (Number(snapshot.val().glimmer) + Number(newAmount));
+          snapshot.ref.update({ glimmer });
+        }
+      });
+    }
+    catch (e) {
+      logger.error(`Error in gambleGlimmer for ${userId} and amount ${amount}: ${e}`);
+    }
+  }
+
+  /* ------------------------- *\
+          &end gambling 
+  \* ------------------------- */
+
+
+  /* ------------------------------------------ *\
+       &glimmer bank/fragmentation functions
+  \* -------------------------------------------*/
 
   // @summary - fragments the glimmer mainframe for each transaction based on the amount
   // @amount - amount being transacted in the economy
@@ -130,28 +312,6 @@ export default class Api {
     catch (e) {
       logger.error(`Error in getFragmentationRate: ${e}`);
     }
-  }
-
-  // @summary - gives glimmer to a user
-  // @param userId - user to give glimmer to
-  // @param amount
-  addGlimerToUser(userId, amount) {
-    this.fragmentGlimmerMainframe(amount);
-    const user = this.database.ref(`users/${userId}`);
-    user.once('value', snapshot => {
-      user.update({ glimmer: snapshot.val().glimmer + amount });
-    });
-  }
-
-  // @summary - takes glimmer from a user
-  // @param userId - user to take glimmer from
-  // @param amount
-  takeGlimerFromUser(userId, amount) {
-    this.fragmentGlimmerMainframe(amount);
-    const user = this.database.ref(`users/${userId}`);
-    user.once('value', snapshot => {
-      user.update({ glimmer: snapshot.val().glimmer - amount });
-    });
   }
 
   /// @summary - adds an amount of glimmer to the global glimmer bank
@@ -256,6 +416,14 @@ export default class Api {
     }
   }
 
+  /* ------------------------------------------ *\
+       &end glimmer bank/fragmentation functions
+  \* -------------------------------------------*/
+
+  /* ------------------------------------------ *\
+       &light level/engram functions
+  \* -------------------------------------------*/
+
   // @summary gets current loadout for user. this includes their specific item names and light levels
   // @param userId - calling user
   getLoadout(userId) {
@@ -312,120 +480,6 @@ export default class Api {
     }
   }
 
-  // @summary gets a list of users and their light levels and sorts them from highest to lowest
-  // 17% chance of winning your gamble, 
-  // 12% chance of doubling your wager, 
-  // 5% chance of tripling it
-  // 23% chance of breaking even, 
-  // 36% chance of losing the gamble,
-  // 7% chance of losing double your gamble
-  // the higher the roll the better
-  // @param userId - calling user
-  // @param amount - the amount the user chose to gamble
-  gambleGlimmer(userId, amount) {
-    try {
-      this.fragmentGlimmerMainframe(amount);
-      if (isNaN(amount)) {
-        this.bot.sendMessage({
-          to: this.channelId,
-          message: `<@${userId}> ${amount} isn't a number, dumbass.`
-        });
-
-        return;
-      }
-
-      if (amount < 0) {
-        this.bot.sendMessage({
-          to: this.channelId,
-          message: `<@${userId}> how you gonna gamble a negative amount? Get outta here.`
-        });
-
-        return;
-      }
-
-      const roll = utilities.randomNumberBetween(1, 100);
-      let doubleLossChance = 7;
-      let lossChance = 36;
-      let breakEvenChance = 23;
-      let tripleChance = 5;
-      let doubleChance = 12;
-      let winChance = 17;
-
-      let newAmount = amount;
-      let message = ``;
-      if (roll <= 7) {
-        newAmount = 0 - amount - amount;
-        this.addAmountToBank(Math.abs(newAmount));
-        message = `rolled a ${roll} (${doubleLossChance}% chance). You have a problem and lost twice your gamble, ${amount * 2} glimmer.`
-      }
-      else if (roll > 7 && roll <= 43) {
-        newAmount = 0 - amount;
-        this.addAmountToBank(Math.abs(newAmount));
-        message = `rolled a ${roll} (${lossChance}% chance). You lost your gamble and lost ${amount} glimmer..`
-      }
-      else if (roll > 43 && roll <= 66) {
-        newAmount = 0;
-        message = `rolled a ${roll} (${breakEvenChance}% chance). You broke even and kept your ${amount} glimmer.`
-      }
-      else if (roll > 66 && roll <= 83) {
-        newAmount = amount;
-        message = `rolled a ${roll} (${winChance}% chance). You won your gamble and won ${newAmount} glimmer!`
-      }
-      else if (roll > 83 && roll <= 95) {
-        newAmount = amount * 2;
-        message = `rolled a ${roll} (${doubleChance}% chance). You doubled your gamble and won ${newAmount} glimmer!`
-      }
-      else {
-        newAmount = amount * 3;
-        message = `rolled a ${roll} (${tripleChance}% chance). You tripled your gamble and won ${newAmount} glimmer!`
-      }
-
-      const user = this.database.ref(`users/${userId}`);
-      user.once('value', snapshot => {
-        if (snapshot.val()) {
-          if (snapshot.val().glimmer < amount) {
-            this.bot.sendMessage({
-              to: this.channelId,
-              message: `<@${userId}> you don't have that much glimmer to gamble.`
-            });
-            return;
-          }
-          this.bot.sendMessage({
-            to: this.channelId,
-            message: `<@${userId}> ${message}`
-          });
-          let glimmer = (Number(snapshot.val().glimmer) + Number(newAmount));
-          snapshot.ref.update({ glimmer });
-        }
-      });
-    }
-    catch (e) {
-      logger.error(`Error in gambleGlimmer for ${userId} and amount ${amount}: ${e}`);
-    }
-  }
-
-  // @summary updates glimmer for a particular user when they type
-  // +5 glimmer for each message
-  // @param userId - calling user
-  // @username - human friendly username of the user
-  updateGlimmer(userId, username) {
-    try {
-      this.fragmentGlimmerMainframe(5);
-      // add 5 to the bank
-      this.addAmountToBank(5);
-      const user = this.database.ref(`users/${userId}`);
-      user.once('value', snapshot => {
-        if (snapshot.val())
-          snapshot.ref.update({ glimmer: snapshot.val().glimmer + 5, username });
-        else
-          this.writeData(userId, username);
-      });
-    }
-    catch (e) {
-      logger.error(`Error in updateGlimmer for ${userId}: ${e}.`);
-    }
-  }
-
   // @summary sometimes rahool is a dick and your engrams decrypt into nothing
   // @param userId - calling user
   rahoolIsADick(userId) {
@@ -445,30 +499,7 @@ export default class Api {
     }
   }
 
-  // @summary gets current glimmer for the calling user
-  // @param userId - calling user
-  getCurrentGlimmer(userId) {
-    try {
-      const user = this.database.ref(`users/${userId}`);
-      user.once('value', snapshot => {
-        if (snapshot.val())
-          this.bot.sendMessage({
-            to: this.channelId,
-            message: `Current glimmer for <@${userId}>: ${snapshot.val().glimmer}.`
-          });
-        else
-          this.bot.sendMessage({
-            to: this.channelId,
-            message: `No glimmer for <@${userId}>.`
-          });
-      });
-    }
-    catch (e) {
-      logger.error(`Error in getCurrentGlimmer for ${userId}: ${e}.`);
-    }
-  }
-
-  // @summary gets current light level only (no loadout) for the calling user
+   // @summary gets current light level only (no loadout) for the calling user
   // @param userId - calling user
   getCurrentLight(userId) {
     try {
@@ -699,7 +730,14 @@ export default class Api {
       logger.error(`Error in updateLightLevel for ${userId}: ${e}.`);
     }
   }
+  /* ------------------------------------------ *\
+       &end light level/engram functions
+  \* -------------------------------------------*/
 
+  
+  /* ----------------------- *\
+       &vendor engrams
+  \* ------------------------*/
   // @summary checks for 300 level gear from vendorengrams.xyz
   get300Vendors() {
     try {
@@ -749,6 +787,14 @@ export default class Api {
       logger.error(`Error in get300Vendors for: ${e}.`);
     }
   }
+
+  /* ----------------------- *\
+       &end vendor engrams
+  \* ------------------------*/
+
+  /* ----------------------- *\
+       &battles
+  \* ------------------------*/
 
   // @summar - gets the battle cooldown for a user
   // @param userId - calling user
@@ -944,6 +990,14 @@ export default class Api {
       logger.error(`Error in raid for ${userId}: ${e}`);
     }
   }
+
+   /* ----------------------- *\
+       &end battles
+  \* ------------------------*/
+
+   /* ----------------------- *\
+       &loans
+  \* ------------------------*/
 
   // @summary loans glimmer from one user to another
   // @param loaner - calling user
@@ -1185,5 +1239,9 @@ export default class Api {
       logger.error(`Error in repay for ${userId} to ${repayToId} for amount: ${amount}.`);
     }
   }
+
+  /* ----------------------- *\
+       &loans
+  \* ------------------------*/
 }
 
