@@ -73,7 +73,7 @@ const lightLevelConfig = {
       min: .9333,
       max: 1.01667,
       color: 'gold',
-      specialChance: .2,
+      specialChance: 20,
       level: 4,
       minInc: 0,
       maxInc: 4

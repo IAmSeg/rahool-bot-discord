@@ -330,7 +330,7 @@ export default class Api {
           if (s.val().fragmentationRate >= 100) {
             // wipe users
             const users = this.database.ref(`users`); 
-            users.update({ glimmer: 0 , oweTo: false });
+            users.update({ glimmer: 0, oweTo: false, loans: false });
 
             // wipe mainframe
             mainRef.update({ fragmentationRate: 0, transactionCount: 0, crashes: s.val().crashes + 1 });
@@ -912,7 +912,7 @@ export default class Api {
       user.once('value', snapshot => {
         try {
           if (utilities.minutesSince(snapshot.val().battleCooldown) < 3) {
-            this.getBattleCooldown(userId, bot, channelId);
+            this.getBattleCooldown(userId, this.bot, this.channelId);
             return;
           }
 
