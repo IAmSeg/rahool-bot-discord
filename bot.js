@@ -39,9 +39,8 @@ bot.on('ready', function (evt) {
 
 
 bot.on('message', function (user, userId, channelId, message, evt) {
+  const api = new Api(bot, channelId);
   try {
-    const api = new Api(bot, channelId);
-
     // dont respond to ourself
     if (userId == bot.id)
       return;
@@ -243,37 +242,39 @@ bot.on('message', function (user, userId, channelId, message, evt) {
           message: `<@${userId}> please specify an amount and someone to collect from. **!collect amount @user**.`
         })
       }
-      let amount = Number(message.split(' ')[1]);
-
-      if (amount < 1) {
-        bot.sendMessage({
-          to: channelId,
-          message: `<@${userId}> you can't collect less than 1 glimmer.`
-        });
-      }
       else {
-        let collectFrom = message.split(' ')[2];
+        let amount = Number(message.split(' ')[1]);
 
-        // extract the collectFrom id from the <@id> string
-        // sometimes there's a random ! at the beginning also
-        let collectFromId = collectFrom.substring(2, collectFrom.length - 1);
-        if (collectFromId[0] == '!') 
-          collectFromId = collectFromId.substring(1, collectFrom.length - 1);
-
-        if (isNaN(collectFromId)) {
+        if (amount < 1) {
           bot.sendMessage({
             to: channelId,
-            message: `<@${userId}> that user doesn't exist.`
+            message: `<@${userId}> you can't collect less than 1 glimmer.`
           });
         }
-        else if (isNaN(amount)) {
-          bot.sendMessage({
-            to: channelId,
-            message: `<@${userId}> that isn't a number, dumbass.`
-          });
+        else {
+          let collectFrom = message.split(' ')[2];
+
+          // extract the collectFrom id from the <@id> string
+          // sometimes there's a random ! at the beginning also
+          let collectFromId = collectFrom.substring(2, collectFrom.length - 1);
+          if (collectFromId[0] == '!') 
+            collectFromId = collectFromId.substring(1, collectFrom.length - 1);
+
+          if (isNaN(collectFromId)) {
+            bot.sendMessage({
+              to: channelId,
+              message: `<@${userId}> that user doesn't exist.`
+            });
+          }
+          else if (isNaN(amount)) {
+            bot.sendMessage({
+              to: channelId,
+              message: `<@${userId}> that isn't a number, dumbass.`
+            });
+          }
+          else 
+            api.collect(userId, amount, collectFromId);
         }
-        else 
-          api.collect(userId, amount, collectFromId);
       }
     }
 

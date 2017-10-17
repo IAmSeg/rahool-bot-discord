@@ -1259,6 +1259,7 @@ export default class Api {
 
             // // update the loaners loans
             const loanerRef = this.database.ref(`users/${loaner}`);
+            this.takeGlimmerFromUser(loaner, amount);
             loanerRef.once('value', loanerSnapshot => {
               if (loanerSnapshot.val()) {
                 let loans = {};
