@@ -429,9 +429,9 @@ export default class Api {
       const ref = this.database.ref(`glimmerBank`);
       ref.once('value', snapshot => {
         try {
-          let amount = snapshot.val().amount + amount;
-          amount = (amount > 0) ? amount : 0;
-          snapshot.ref.update({ amount });
+          let newAmount = snapshot.val().amount + amount;
+          newAmount = (newAmount > 0) ? newAmount : 0;
+          snapshot.ref.update({ amount: newAmount });
         }
         catch (e) { 
           this.error();
