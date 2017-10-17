@@ -33,6 +33,14 @@ export default class Api {
     this.channelId = channelId;
   }
 
+  // @summary - lets the user know that an error occurred
+  error() {
+    this.bot.sendMessage({
+      to: this.channelId,
+      message: `I'm sorry, something went wrong. Hang off on that command until someone can fix it.`
+    });
+  }
+
   /* -------------------- *\
        &user functions
   \* ---------------------*/
@@ -68,6 +76,7 @@ export default class Api {
     }
     catch (e) {
       logger.error(`Error in writeData for ${userId}: ${e}`);
+      this.error();
     }
   }
 
@@ -81,7 +90,10 @@ export default class Api {
       try {
         user.update({ glimmer: snapshot.val().glimmer + amount });
       }
-      catch (e) { logger.error(`Error adding glimmer to user: ${userId}: ${e}`); }
+      catch (e) { 
+        this.error();
+        logger.error(`Error adding glimmer to user: ${userId}: ${e}`); 
+      }
     });
   }
 
@@ -95,7 +107,10 @@ export default class Api {
       try {
         user.update({ glimmer: snapshot.val().glimmer - amount });
       }
-      catch (e) { logger.error(`Error taking glimmer from user: ${userId}: ${e}`); }
+      catch (e) { 
+        this.error();
+        logger.error(`Error taking glimmer from user: ${userId}: ${e}`); 
+      }
     });
   }
 
@@ -109,6 +124,7 @@ export default class Api {
       this.addAmountToBank(5);
     }
     catch (e) {
+      this.error();
       logger.error(`Error in updateGlimmer for ${userId}: ${e}.`);
     }
   }
@@ -133,10 +149,14 @@ export default class Api {
             });
           }
         } 
-        catch (e) { logger.error(`Error in getcurrentglimmer for user: ${userId}: ${e}`); }
+        catch (e) { 
+          logger.error(`Error in getcurrentglimmer for user: ${userId}: ${e}`); 
+          this.error();
+        }
       });
     }
     catch (e) {
+      this.error();
       logger.error(`Error in getCurrentGlimmer for ${userId}: ${e}.`);
     }
   }
@@ -236,10 +256,14 @@ export default class Api {
             snapshot.ref.update({ glimmer });
           }
         }
-        catch (e) { logger.error(`Error in gambleGlimmer for user: ${userId} amount ${amount}: ${e}`); }
+        catch (e) { 
+          this.error();
+          logger.error(`Error in gambleGlimmer for user: ${userId} amount ${amount}: ${e}`); 
+        }
       });
     }
     catch (e) {
+      this.error();
       logger.error(`Error in gambleGlimmer for ${userId} and amount ${amount}: ${e}`);
     }
   }
@@ -265,11 +289,15 @@ export default class Api {
           fragRef.update({ fragmentationRate: s.val().fragmentationRate + fragmentationAmount, transactionCount: s.val().transactionCount + 1 });
           this.checkMainframeFragmentation();
         }
-        catch (e) { logger.error(`Error fragmenting glimmer mainframe: ${amount}: ${e}`); }
+        catch (e) { 
+          this.error();
+          logger.error(`Error fragmenting glimmer mainframe: ${amount}: ${e}`); 
+        }
       });
 
     } 
     catch (e) {
+      this.error();
       logger.error(`Error in fragmentGlimmerMainframe for amount ${amount}: ${e}`);
     }
   }
@@ -290,10 +318,16 @@ export default class Api {
             try {
               userRef.update({ glimmer: us.val().glimmer - amount });
             }
-            catch (e) { logger.error(`Error in defragmentGlimmerMainframe for user: ${userId}: ${e}`); }
+            catch (e) { 
+              this.error();
+              logger.error(`Error in defragmentGlimmerMainframe for user: ${userId}: ${e}`); 
+            }
           });
         }
-        catch (e) { logger.error(`Error in defragGlimmerMainframe for user: ${userId}: ${e}`); }
+        catch (e) { 
+          this.error();
+          logger.error(`Error in defragGlimmerMainframe for user: ${userId}: ${e}`); 
+        }
       });
 
 
@@ -305,6 +339,7 @@ export default class Api {
       this.getFragmentationRate();
     } 
     catch (e) {
+      this.error();
       logger.error(`Error in defragGlimmerMainframe for amount ${amount}: ${e}`);
     }
   }
@@ -336,7 +371,10 @@ export default class Api {
                   userRef.update({ glimmer: 0, oweTo: false, loans: false });
                 }
               }
-              catch (e) { logger.error(`Error wiping users in checkMainframeFragmentation: ${e}`); }
+              catch (e) { 
+                this.error();
+                logger.error(`Error wiping users in checkMainframeFragmentation: ${e}`); 
+              }
             });
 
             this.bot.sendMessage({
@@ -345,10 +383,14 @@ export default class Api {
             });
           }
         }
-        catch (e) { logger.error(`Error checking mainframe fragementation: ${e}`); }
+        catch (e) { 
+          logger.error(`Error checking mainframe fragementation: ${e}`); 
+          this.error();
+        }
       });
     } 
     catch (e) {
+      this.error();
       logger.error(`Error in checkMainframeFragmentation: ${e}`);
     }
   }
@@ -367,10 +409,14 @@ export default class Api {
             message
           });
         }
-        catch (e) { logger.error(`Error in getFragmentationRate: ${e}`); }
+        catch (e) { 
+          this.error();
+          logger.error(`Error in getFragmentationRate: ${e}`); 
+        }
       });
     } 
     catch (e) {
+      this.error();
       logger.error(`Error in getFragmentationRate: ${e}`);
     }
   }
@@ -385,10 +431,14 @@ export default class Api {
         try {
           snapshot.ref.update({ amount: snapshot.val().amount + amount });
         }
-        catch (e) { logger.error(`Error adding glimmer to bank: ${amount}: ${e}`); }
+        catch (e) { 
+          this.error();
+          logger.error(`Error adding glimmer to bank: ${amount}: ${e}`); 
+        }
       });
     }
     catch (e) {
+      this.error();
       logger.error(`Error in addAmountToBank: ${e}`);
     }
   }
@@ -405,10 +455,14 @@ export default class Api {
             message: `Current Global Glimmer Bank amount: **${snapshot.val().amount}** glimmer.`
           });
         }
-        catch (e) { logger.error(`Error getting bank amount: ${e}`); }
+        catch (e) { 
+          this.error();
+          logger.error(`Error getting bank amount: ${e}`); 
+        }
       });
     }
     catch (e) {
+      this.error();
       logger.error(`Error in getBankAmount: ${e}`);
     }
   }
@@ -460,7 +514,10 @@ export default class Api {
 
                 bankRef.update({ amount: 0 });
               }
-              catch (e) { logger.error(`Error robbing bank for user: ${userId}: ${e}`); }
+              catch (e) { 
+                this.error();
+                logger.error(`Error robbing bank for user: ${userId}: ${e}`); 
+              }
             });
           }
           else {
@@ -476,10 +533,14 @@ export default class Api {
             });
           }
         }
-        catch (e) { logger.error(`Error robbing bank for user: ${userId}: ${e}`); }
+        catch (e) { 
+          this.error();
+          logger.error(`Error robbing bank for user: ${userId}: ${e}`); 
+        }
       });
     }
     catch (e) {
+      this.error();
       logger.error(`Error in robBank: ${e}`);
     }
   }
@@ -515,10 +576,14 @@ export default class Api {
             message
           });
         } 
-        catch (e) { logger.error(`Error getting loadout for user: ${userId}: ${e}`); }
+        catch (e) { 
+          this.error();
+          logger.error(`Error getting loadout for user: ${userId}: ${e}`); 
+        }
      });
     }
     catch (e) {
+      this.error();
       logger.error(`Error in getLoadout for ${userId}: ${e}`);
     }
   }
@@ -546,10 +611,14 @@ export default class Api {
             message
           });
         }
-        catch (e) { logger.error(`Error getting light rank: ${e}`); }
+        catch (e) { 
+          this.error();
+          logger.error(`Error getting light rank: ${e}`); 
+        }
       });
     }
     catch (e) {
+      this.error();
       logger.error(`Error in getLightRank: ${e}`);
     }
   }
@@ -565,6 +634,7 @@ export default class Api {
       });
     }
     catch (e) {
+      this.error();
       logger.error(`Error in rahoolIsADick for ${userId}: ${e}.`);
     }
   }
@@ -584,10 +654,14 @@ export default class Api {
             });
           }
         }
-        catch (e) { logger.error(`Error getting current light for user: ${userId}: ${e}`); }
+        catch (e) { 
+          logger.error(`Error getting current light for user: ${userId}: ${e}`); 
+          this.error();
+        }
       });
     }
     catch (e) {
+      this.error();
       logger.error(`Error in getCurrentLight for ${userId}: ${e}.`);
     }
   }
@@ -642,14 +716,21 @@ export default class Api {
                   message
                 });
               }
-              catch (e) { logger.error(`Error getting engram from db for user: ${userId}: ${e}`); }
+              catch (e) { 
+                this.error();
+                logger.error(`Error getting engram from db for user: ${userId}: ${e}`); 
+              }
             });
           }
         }
-        catch (e) { logger.error(`Error getting engram for user: ${userId}: ${e}`); }
+        catch (e) { 
+          this.error();
+          logger.error(`Error getting engram for user: ${userId}: ${e}`); 
+        }
       }); 
     }
     catch (e) {
+      this.error();
       logger.error(`Error in getEngram for ${userId}: ${e}.`);
     }
   }
@@ -804,11 +885,15 @@ export default class Api {
               snapshot.ref.update({ itemLightLevels });
             }
           }
-          catch (e) { logger.error(`Error updating light level for user: ${userId}: ${e}`); }
+          catch (e) {
+           this.error();
+           logger.error(`Error updating light level for user: ${userId}: ${e}`); 
+          }
         });
       }
     } 
     catch (e) {
+      this.error();
       logger.error(`Error in updateLightLevel for ${userId}: ${e}.`);
     }
   }
@@ -861,11 +946,13 @@ export default class Api {
           }
         } 
         catch (e) {
+          this.error();
           logger.error(`Error parsing JSON response from vendor engrams api: ${e}`);
         }
       });
     }
     catch (e) {
+      this.error();
       logger.error(`Error in get300Vendors for: ${e}.`);
     }
   }
@@ -891,10 +978,14 @@ export default class Api {
             message: `<@${userId}> you are exhausted from your previous battle. You must take time to recover. You can battle in **${cooldown}** minutes.`
           })
         }
-        catch (e) { logger.error(`Error getting battle cooldown for user: ${userId}: ${e}`); }
+        catch (e) { 
+          this.error();
+          logger.error(`Error getting battle cooldown for user: ${userId}: ${e}`); 
+        }
       });
     }
     catch (e) {
+      this.error();
       logger.error(`Error in getBattleCooldown for ${userId}: ${e}`);
     }
   }
@@ -1007,11 +1098,13 @@ export default class Api {
           this.fragmentGlimmerMainframe(glimmerWonOrLost);
         }
         catch (e) {
+          this.error();
           logger.error(`Error in battle for user: ${userId}: ${e}.`);
         }
       });
     }
     catch (e) {
+      this.error();
       logger.error(`Error in battle for user: ${userId}: ${e}.`);
     }
   }
@@ -1072,6 +1165,7 @@ export default class Api {
       })
     }
     catch (e) {
+      this.error();
       logger.error(`Error in raid for ${userId}: ${e}`);
     }
   }
@@ -1129,11 +1223,15 @@ export default class Api {
             }
           }
         }
-        catch (e) { logger.error(`Error in loan for user: ${userId} to ${laonTo} for amount ${amount}: ${e}`); }
+        catch (e) { 
+          this.error();
+          logger.error(`Error in loan for user: ${userId} to ${laonTo} for amount ${amount}: ${e}`); 
+        }
       });
     }
     catch (e) {
       logger.error(`Error in loan from ${loaner} to ${loanTo} for amount: ${amount}: ${e}`);
+      this.error();
     }
   }
 
@@ -1176,11 +1274,15 @@ export default class Api {
             });
           }
         }
-        catch (e) { logger.error(`Error in give loan to for user: ${loaner} to ${laonTo} for amount ${amount}: ${e}`); }
+        catch (e) { 
+          this.error();
+          logger.error(`Error in give loan to for user: ${loaner} to ${laonTo} for amount ${amount}: ${e}`); 
+        }
       });
 
     }
     catch (e) {
+      this.error();
       logger.error(`Error in giveLoanTo for ${loanTo} for amount: ${amount}: ${e}`);
     }
   }
@@ -1214,10 +1316,14 @@ export default class Api {
             });
           }
         }
-        catch (e) { logger.error(`Error getting loans for user: ${userId}: ${e}`); }
+        catch (e) { 
+          this.error();
+          logger.error(`Error getting loans for user: ${userId}: ${e}`); 
+        }
       });
     } 
     catch (e) {
+      this.error();
       logger.error(`Error in getDebt for user: ${userId}: ${e}`);
     }
   }
@@ -1251,10 +1357,14 @@ export default class Api {
             });
           }
         }
-        catch (e) { logger.error(`Error getting debt for user: ${userId}: ${e}`); }
+        catch (e) { 
+          this.error();
+          logger.error(`Error getting debt for user: ${userId}: ${e}`); 
+        }
       });
     } 
     catch (e) {
+      this.error();
       logger.error(`Error in getDebt for user: ${userId}: ${e}`);
     }
   }
@@ -1296,7 +1406,10 @@ export default class Api {
                     loans[collectFromId].amount -= amount;
                     userRef.update({ loans });
                   }
-                  catch (e) { logger.error(`Error in adding loan object to user: ${userId} from ${collectFromId}: ${e}`); }
+                  catch (e) { 
+                    this.error();
+                    logger.error(`Error in adding loan object to user: ${userId} from ${collectFromId}: ${e}`); 
+                  }
                 });
 
                 // repay the user
@@ -1314,10 +1427,14 @@ export default class Api {
               });
             }
           }
-          catch (e) { logger.error(`Error in collect for user: ${userId} from ${collectFromId} for amount ${amount}: ${e}`); }
+          catch (e) { 
+            this.error();
+            logger.error(`Error in collect for user: ${userId} from ${collectFromId} for amount ${amount}: ${e}`); 
+          }
       });
     }
     catch (e) {
+      this.error();
       logger.error(`Error in collect for ${userId} to ${collectFromId} for amount: ${amount}.`);
     }
   }
@@ -1359,7 +1476,10 @@ export default class Api {
                     loans[userId].amount -= amount;
                     repayToRef.update({ loans });
                   }
-                  catch (e) { logger.error(`Error adding loans object to user: ${repayToId} from ${userId} for ${amount}: ${e}`); }
+                  catch (e) { 
+                    this.error();
+                    logger.error(`Error adding loans object to user: ${repayToId} from ${userId} for ${amount}: ${e}`); 
+                  }
                 });
 
                 // bank pays 20% of repayments, and adds 20% interest
@@ -1390,10 +1510,14 @@ export default class Api {
             });
           }
         }
-        catch (e) { logger.error(`Error repaying ${amount} to user: ${repayToId} from ${userId}: ${e}`); }
+        catch (e) { 
+          logger.error(`Error repaying ${amount} to user: ${repayToId} from ${userId}: ${e}`); 
+          this.error();
+        }
       });
     }
     catch (e) {
+      this.error();
       logger.error(`Error in repay for ${userId} to ${repayToId} for amount: ${amount}.`);
     }
   }
