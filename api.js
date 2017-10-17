@@ -946,13 +946,11 @@ export default class Api {
           }
         } 
         catch (e) {
-          this.error();
           logger.error(`Error parsing JSON response from vendor engrams api: ${e}`);
         }
       });
     }
     catch (e) {
-      this.error();
       logger.error(`Error in get300Vendors for: ${e}.`);
     }
   }
