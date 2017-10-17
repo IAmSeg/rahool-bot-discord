@@ -1064,7 +1064,7 @@ export default class Api {
           if (won) {
             glimmerWonOrLost = battleConfig.calculateGlimmerWon(chanceToWin, tier);
             let randomMessage = utilities.getRandomFrom(battleConfig.successMessages);
-            let afterMessage = `After a difficult fight <@${userId}>, ${randomMessage} the **${selectedEnemy}**. You walk away the victor, and the Global Glimmer Bank pays **${glimmerWonOrLost} glimmer** for your valient effort.`;
+            let afterMessage = `After a difficult fight <@${userId}>, ${randomMessage} the **${selectedEnemy}**. You walk away the victor, and the Global Glimmer Bank pays **${glimmerWonOrLost} glimmer** for your valiant effort.`;
             // bank pays
             this.addAmountToBank(Number(0 - glimmerWonOrLost));
 
