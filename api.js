@@ -1483,7 +1483,7 @@ export default class Api {
               this.delayMessage(`*Gaurdian down...*`, 28000);
               let defeatMessage = selectedRaidObj.defeatMessage;
               this.delayMessage(`${userList}\nAfter a tough battle, you are defeated by **${raidBoss}**. ${defeatMessage}.`, 31000);
-              this.delayMessage(`Your light has been reduced by **${lightReduction}** by your enemies.`, 31000);
+              this.delayMessage(`Your light has been reduced by **${lightReduction}** by your enemies.`, 32000);
             } 
 
             // update the battle logs
