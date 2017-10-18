@@ -1095,10 +1095,27 @@ export default class Api {
             }, 11000);
           }
 
+          // update the battle log
+          let battleLog = {};
+          if (snapshot.val().battleLog)
+            battleLog = snapshot.val().battleLog;
+          if (battleLog[tier + 1]) {
+            if (won)
+              battleLog[tier + 1] = { won: battleLog[tier + 1].won + 1, glimmer: battleLog[tier + 1].glimmer + glimmerWonOrLost };
+            else
+              battleLog[tier + 1] = { loss: battleLog[tier + 1].loss + 1, glimmer: battleLog[tier + 1].glimmer - glimmerWonOrLost };
+          }
+          else { // no battle log
+            if (won)
+              battleLog[tier + 1] = { won: 1, glimmer: glimmerWonOrLost };
+            else
+              battleLog[tier + 1] = { loss: 1, glimmer: (0 - glimmerWonOrLost) };
+          }
+
           // add a battle cooldown
           user.update({ battleCooldown: moment().unix() });
 
-          user.update({ glimmer: snapshot.val().glimmer + (won ? Number(glimmerWonOrLost) : Number(0 - glimmerWonOrLost)) });
+          user.update({ battleLog, glimmer: snapshot.val().glimmer + (won ? Number(glimmerWonOrLost) : Number(0 - glimmerWonOrLost)) });
           this.fragmentGlimmerMainframe(glimmerWonOrLost);
         }
         catch (e) {
@@ -1110,6 +1127,42 @@ export default class Api {
     catch (e) {
       this.error();
       logger.error(`Error in battle for user: ${userId}: ${e}.`);
+    }
+  }
+
+  // @summary - gets the users battle log
+  // @param userId - calling user
+  getBattleLog(userId) {
+    try {
+      const ref = this.database.ref(`users/${userId}`);
+      ref.once('value', s => {
+        try {
+          let message = `Battle log for <@${userId}>: \n`;
+          let battleLog = s.val().battleLog;
+          let totalGlimmer = 0;
+          let totalWins = 0;
+          let totalLosses = 0;
+          for (let i in battleLog) {
+            message += `Tier ${i}: Won: ${battleLog[i].won || 0}, Lost: ${battleLog[i].loss || 0}, Glimmer Won/Lost: ${battleLog[i].glimmer}\n`;
+            totalWins += (battleLog[i].won ? battleLog[i].won : 0);
+            totalLosses += (battleLog[i].loss ? battleLog[i].loss : 0);
+            totalGlimmer += battleLog[i].glimmer;
+          }
+
+          message += `**Total: Won: ${totalWins}, Lost: ${totalLosses}, Glimmer: ${totalGlimmer}**`;
+
+          this.bot.sendMessage({
+            to: this.channelId,
+            message
+          });
+        }
+        catch (e) {
+          logger.error(`Error in snapshot getBattleLog for user: ${userId}: ${e}`);
+        }
+      });
+    }
+    catch (e) {
+      logger.error(`Error in getBattleLog for user: ${userId}: ${e}`);
     }
   }
 

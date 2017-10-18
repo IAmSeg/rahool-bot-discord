@@ -145,6 +145,9 @@ bot.on('message', function (user, userId, channelId, message, evt) {
         api.battle(userId, tier);
     }
 
+    if (message === '!battlelog') 
+      api.getBattleLog(userId);
+
     if (message === '!battlecooldown')
       api.getBattleCooldown(userId);
 
@@ -370,6 +373,7 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       message += `**!bankamount** - Check the current Global Glimmer Bank amount.\n`;
       message += `**!battle ENEMY_TIER** - Battles an enemy in your selected tier (1-8).\n`;
       message += `**!battlecooldown** - Check your current battle cooldown time.\n`;
+      message += `**!battlelog** - Check your total battle wins/losses/glimmer.\n`;
       message += `**!loan AMOUNT @user** - Loan AMOUNT glimmer to a user.\n`;
       message += `**!collect AMOUNT @user** - Collect a loan of AMOUNT glimmer from @user who you have loaned to.\n`;
       message += `**!repay AMOUNT @user** - Repay a loan of AMOUNT glimmer to @user who has loaned glimmer to you.\n`;
