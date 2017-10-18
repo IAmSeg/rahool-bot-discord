@@ -42,6 +42,18 @@ export default class Api {
     });
   }
 
+  // @summary - sets a timer for a delayed message
+  // @message - message to send
+  // @time - timer to wait before sending message
+  delayMessage(message, time) {
+    setTimeout(() => {
+      this.bot.sendMessage({
+        to: this.channelId,
+        message
+      })
+    }, time);
+  }
+
   /* -------------------- *\
        #user functions
   \* ---------------------*/
@@ -901,6 +913,65 @@ export default class Api {
       logger.error(`Error in updateLightLevel for ${userId}: ${e}.`);
     }
   }
+
+  // @summary - removes a certain amount of light from a user, perhaps for losing a raid
+  // @param userId - user to remove light from
+  // @param amount - amount of light to remove
+  removeLightFromUser(userId, amount) {
+    this.database.ref(`users/${userId}`).once('value', snapshot => {
+      try {
+        if (snapshot.val() && snapshot.val().itemLightLevels) {
+          let kineticLight = snapshot.val().itemLightLevels.kineticLight;
+          kineticLight = (kineticLight - amount) > 0 ? (kineticLight - amount) : 0;
+          let energyLight = snapshot.val().itemLightLevels.energyLight;
+          energyLight = (energyLight - amount) > 0 ? (energyLight - amount) : 0;
+          let powerLight = snapshot.val().itemLightLevels.powerLight;
+          powerLight = (powerLight - amount) > 0 ? (powerLight - amount) : 0;
+          let helmetLight = snapshot.val().itemLightLevels.helmetLight;
+          helmetLight = (helmetLight - amount) > 0 ? (helmetLight - amount) : 0;
+          let gauntletsLight = snapshot.val().itemLightLevels.gauntletsLight;
+          gauntletsLight = (gauntletsLight - amount) > 0 ? (gauntletsLight - amount) : 0;
+          let chestLight = snapshot.val().itemLightLevels.chestLight;
+          chestLight = (chestLight - amount) > 0 ? (chestLight - amount) : 0;
+          let legsLight = snapshot.val().itemLightLevels.legsLight;
+          legsLight = (legsLight - amount) > 0 ? (legsLight - amount) : 0;
+          let classLight = snapshot.val().itemLightLevels.classLight;
+          classLight = (classLight - amount) > 0 ? (classLight - amount) : 0;
+          let kineticName = snapshot.val().itemLightLevels.kineticName;
+          let energyName = snapshot.val().itemLightLevels.energyName;
+          let powerName = snapshot.val().itemLightLevels.powerName;
+          let helmetName = snapshot.val().itemLightLevels.helmetName;
+          let gauntletsName = snapshot.val().itemLightLevels.gauntletsName;
+          let chestName = snapshot.val().itemLightLevels.chestName;
+          let legsName = snapshot.val().itemLightLevels.legsName;
+          let className = snapshot.val().itemLightLevels.className;
+
+          let itemLightLevels = {
+            helmetLight,
+            chestLight,
+            gauntletsLight,
+            legsLight,
+            classLight,
+            kineticLight,
+            energyLight,
+            powerLight,
+            kineticName,
+            energyName,
+            powerName,
+            helmetName,
+            gauntletsName,
+            chestName,
+            legsName,
+            className
+          };
+          snapshot.ref.update({ itemLightLevels });
+        }
+      }
+      catch (e) {
+        logger.error(`Error removing light from user ${userId}: ${e}`);
+      }
+    });
+  }
   /* ------------------------------------------ *\
        #end light level/engram functions
   \* -------------------------------------------*/
@@ -1093,40 +1164,10 @@ export default class Api {
             }, 11000);
           }
 
-          // update the battle log
-          let battleLog = {};
-          glimmerWonOrLost = Number(glimmerWonOrLost);
-          if (snapshot.val().battleLog)
-            battleLog = snapshot.val().battleLog;
-
-          if (battleLog[tier + 1]) {
-            if (won) {
-              battleLog[tier + 1] = { 
-                won: (battleLog[tier + 1].won ? battleLog[tier + 1].won : 0) + 1, 
-                loss: battleLog[tier + 1].loss,
-                glimmer: Number(battleLog[tier + 1].glimmer) + glimmerWonOrLost
-               };
-            }
-            else {
-              battleLog[tier + 1] = { 
-                won: battleLog[tier + 1].won,
-                loss: (battleLog[tier + 1].loss ? battleLog[tier + 1].loss : 0) + 1, 
-                glimmer: Number(battleLog[tier + 1].glimmer) - glimmerWonOrLost 
-              };
-            }
-          }
-          else { // no battle log
-            if (won)
-              battleLog[tier + 1] = { won: 1, loss: 0, glimmer: Number(glimmerWonOrLost) };
-            else
-              battleLog[tier + 1] = { loss: 1, won: 0, glimmer: Number(0 - glimmerWonOrLost) };
-          }
-
           // add a battle cooldown
           user.update({ battleCooldown: moment().unix() });
-
-          user.update({ battleLog, glimmer: snapshot.val().glimmer + (won ? Number(glimmerWonOrLost) : Number(0 - glimmerWonOrLost)) });
-          this.fragmentGlimmerMainframe(glimmerWonOrLost);
+          // update the battle log
+          this.updateBattleLog(userId, tier + 1, won, glimmerWonOrLost);
         }
         catch (e) {
           this.error(`I'm sorry. Something went wrong with the !battle command. Hold off until someone can fix it.`);
@@ -1161,10 +1202,10 @@ export default class Api {
           let totalWins = 0;
           let totalLosses = 0;
           for (let i in battleLog) {
-            if (i === 9)
-              message += `Raids: Won: ${battleLog[i].won || 0}, Lost: ${battleLog[i].loss || 0}, Glimmer Won/Lost: ${battleLog[i].glimmer}\n`;
+            if (i == 9)
+              message += `Raids: Won: ${battleLog[i].won || 0}, Lost: ${battleLog[i].loss || 0}, Glimmer: ${battleLog[i].glimmer}\n`;
             else
-              message += `Tier ${i}: Won: ${battleLog[i].won || 0}, Lost: ${battleLog[i].loss || 0}, Glimmer Won/Lost: ${battleLog[i].glimmer}\n`;
+              message += `Tier ${i}: Won: ${battleLog[i].won || 0}, Lost: ${battleLog[i].loss || 0}, Glimmer: ${battleLog[i].glimmer}\n`;
             totalWins += (battleLog[i].won ? battleLog[i].won : 0);
             totalLosses += (battleLog[i].loss ? battleLog[i].loss : 0);
             totalGlimmer += battleLog[i].glimmer;
@@ -1185,6 +1226,51 @@ export default class Api {
     catch (e) {
       logger.error(`Error in getBattleLog for user: ${userId}: ${e}`);
     }
+  }
+
+  // @summary - updates the battle log for a user
+  // @param userId - user to update battle log for
+  // @param tier - tier of battle
+  // @param won - true or false
+  // @param glimmer - amount of glimmer won or lost
+  updateBattleLog(userId, tier, won, glimmer) {
+    this.database.ref(`users/${userId}`).once('value', snapshot => {
+      try {
+        let battleLog = {};
+        glimmer = Number(glimmer);
+        if (snapshot.val().battleLog)
+          battleLog = snapshot.val().battleLog;
+
+        if (battleLog[tier]) {
+          if (won) {
+            battleLog[tier] = { 
+              won: (battleLog[tier].won ? battleLog[tier].won : 0) + 1, 
+              loss: battleLog[tier].loss,
+              glimmer: Number(battleLog[tier].glimmer) + glimmer
+             };
+          }
+          else {
+            battleLog[tier] = { 
+              won: battleLog[tier].won,
+              loss: (battleLog[tier].loss ? battleLog[tier].loss : 0) + 1, 
+              glimmer: Number(battleLog[tier].glimmer) - glimmer
+            };
+          }
+        }
+        else { // no battle log
+          if (won)
+            battleLog[tier] = { won: 1, loss: 0, glimmer: Number(glimmer) };
+          else
+            battleLog[tier] = { loss: 1, won: 0, glimmer: Number(0 - glimmer) };
+        }
+
+        snapshot.ref.update({ battleLog, glimmer: snapshot.val().glimmer + (won ? Number(glimmer) : Number(0 - glimmer)) });
+        this.fragmentGlimmerMainframe(glimmer);
+      }
+      catch (e) {
+        logger.error(`Error updating battle log for user ${userId} tier ${tier}: ${e}`);
+      }
+    });
   }
 
   // @summary initiates the raid protocol. users will have 60 seconds to join in once the battle starts
@@ -1344,7 +1430,7 @@ export default class Api {
             if (minutesSince < 1) {
               this.bot.sendMessage({
                 to: this.channelId,
-                message: `<@${userId}> I'm sorry, the raid join timer has not expired yet. You can start the raid in ${1 - minutesSince} minutes.`
+                message: `<@${userId}> I'm sorry, the raid join timer has not expired yet. You can start the raid in ${(1 - minutesSince).toFixed(2)} minutes.`
               });
 
               return;
@@ -1367,26 +1453,48 @@ export default class Api {
               message
             });
 
-            setTimeout(() => {
-              this.bot.sendMessage({
-                to: this.channelId,
-                message: `You rally together as a fireteam and descend into ${raidName}.`
-              })
-            }, 4000);
+            // battle messages
+            this.delayMessage(`You rally together as a fireteam and descend into ${raidName}.`, 4000);
+            this.delayMessage(`After searching for some time, you finally find your prey. Out of the darkness rises **${raidBoss}** at **${enemyLight}** power.`, 8000);
+            this.delayMessage(`At your current combined light of **${totalLight}**, you have a **${chanceToWin}%** chance of winning the fight.`, 12000);
+            this.delayMessage(`*Let's do this.*`, 15000);
+            this.delayMessage(`Bullets fly. Enemies fall. The battle rages on.`, 18000);
 
-            setTimeout(() => {
-              this.bot.sendMessage({
-                to: this.channelId,
-                message: `After searching for some time, you finally find your prey. Out of the darkness rises **${raidBoss}** at **${enemyLight}** power.`
-              })
-            }, 8000);
+            this.delayMessage(`*I have to reload!*`, 21000);
+            this.delayMessage(`*Cover me!*`, 22000);
+            this.delayMessage(`*I'm going down!*`, 22000);
+            this.delayMessage(`The darkness closes in...`, 25000);
 
-            setTimeout(() => {
-              this.bot.sendMessage({
-                to: this.channelId,
-                message: `At your current combined light of **${totalLight}**, you have a **${chanceToWin}%** chance of winning the fight.`
-              })
-            }, 10000);
+            let roll = utilities.randomNumberBetweenTo2(0, 100);
+            let won = false;
+            let glimmerShare = Math.floor(glimmerBounty / s.val().users.length);
+            let lightReduction = Math.floor(10 * (1 + (chanceToWin / 100)));
+
+            // we won
+            if (roll <= chanceToWin) {
+              won = true;
+              this.delayMessage(`The Light bursts through!`, 28000);
+              let successMessage = selectedRaidObj.successMessage;
+              this.delayMessage(`${userList}\nAfter a tough battle, you defeat **${raidBoss}**. ${successMessage}.`, 31000);
+              this.delayMessage(`The Vanguard awards you each **${glimmerShare} glimmer** for your courageous acts.`, 32000);
+            }
+            // we lost 
+            else {
+              this.delayMessage(`*Gaurdian down...*`, 28000);
+              let defeatMessage = selectedRaidObj.defeatMessage;
+              this.delayMessage(`${userList}\nAfter a tough battle, you are defeated by **${raidBoss}**. ${defeatMessage}.`, 31000);
+              this.delayMessage(`Your light has been reduced by **${lightReduction}** by your enemies.`, 31000);
+            } 
+
+            // update the battle logs
+            s.val().users.forEach(user => {
+              if (won)
+                this.updateBattleLog(user.id, 9, true, glimmerShare); 
+              else {
+                this.updateBattleLog(user.id, 9, false, 0);
+                this.removeLightFromUser(user.id, lightReduction);
+              }
+            });
 
             // remove the raid from the object
             raidRef.remove();
@@ -1409,6 +1517,8 @@ export default class Api {
       logger.error(`Error in startRaid for user ${userId} for raid ${raidId}: ${e}`);
     }
   }
+
+
 
    /* ----------------------- *\
        #end battles

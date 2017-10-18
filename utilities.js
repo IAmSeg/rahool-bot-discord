@@ -14,7 +14,7 @@ const utilities = {
   // @param - max number
   // @returns - random number between min and max
   randomNumberBetweenTo2(min, max) {
-    return (Math.random() * (max - min) + min).toFixed(2);
+    return (Math.random() * (max - min + 1) + min).toFixed(2);
   },
 
   // @summary gets a random item from an array
