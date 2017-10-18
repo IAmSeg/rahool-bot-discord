@@ -1100,17 +1100,28 @@ export default class Api {
           glimmerWonOrLost = Number(glimmerWonOrLost);
           if (snapshot.val().battleLog)
             battleLog = snapshot.val().battleLog;
+
           if (battleLog[tier + 1]) {
-            if (won)
-              battleLog[tier + 1] = { won: battleLog[tier + 1].won + 1, glimmer: Number(battleLog[tier + 1].glimmer) + glimmerWonOrLost };
-            else
-              battleLog[tier + 1] = { loss: battleLog[tier + 1].loss + 1, glimmer: Number(battleLog[tier + 1].glimmer) - glimmerWonOrLost };
+            if (won) {
+              battleLog[tier + 1] = { 
+                won: (battleLog[tier + 1].won ? battleLog[tier + 1].won : 0) + 1, 
+                loss: battleLog[tier + 1].loss,
+                glimmer: Number(battleLog[tier + 1].glimmer) + glimmerWonOrLost
+               };
+            }
+            else {
+              battleLog[tier + 1] = { 
+                won: battleLog[tier + 1].won,
+                loss: (battleLog[tier + 1].loss ? battleLog[tier + 1].loss : 0) + 1, 
+                glimmer: Number(battleLog[tier + 1].glimmer) - glimmerWonOrLost 
+              };
+            }
           }
           else { // no battle log
             if (won)
-              battleLog[tier + 1] = { won: 1, glimmer: glimmerWonOrLost };
+              battleLog[tier + 1] = { won: 1, loss: 0, glimmer: Number(glimmerWonOrLost) };
             else
-              battleLog[tier + 1] = { loss: 1, glimmer: (0 - glimmerWonOrLost) };
+              battleLog[tier + 1] = { loss: 1, won: 0, glimmer: Number(0 - glimmerWonOrLost) };
           }
 
           // add a battle cooldown
