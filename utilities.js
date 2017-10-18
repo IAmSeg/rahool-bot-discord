@@ -6,7 +6,7 @@ const utilities = {
   // @param - max number
   // @returns - random number between min and max
   randomNumberBetween(min, max) {
-    return Math.floor(Math.random() * (max - min) + min);
+    return Math.floor(Math.random() * (max - min + 1) + min);
   },
 
   // @summary returns a random number between min and max inclusive, not floored, to 2 decimal places

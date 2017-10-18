@@ -31,23 +31,30 @@ export default {
         'The Oracles',
         'The Templar',
         'The Gorgons',
-        'The Gatekeeper',
+        'The Gatekeepers',
         'Atheon, Time\'s Conflux',
-      ] 
+      ],
+      successMessage: 'you conquer time and emerge victorious. *Now how do we leave?* .......\n *Where are we...?*\n*When are we...?*',
+      defeatMessage: 'you are forever lost in the dark corners of time.'
     },
     { 
       name: 'The Ocean of Storms',
       bosses: [
         'The Gatekeeper Knights',
         'Ir Yut, The Deathsinger',
+        'The Oversoul',
         'Crota, Son of Oryx'
-      ] 
+      ],
+      successMessage: 'you quell the Hive abominations and stop their rituals... *For now.*',
+      defeatMessage: 'you fall to the Hive, doomed to dwell in their pit of darkness forever.'
     },
     { 
       name: 'The Prison of Elders',
       bosses: [
         'Skolas, Kell of Kells'
-      ] 
+      ],
+      successMessage: 'you defeat the Prisoner and descend below the Prison to claim your rewards.',
+      defeatMessage: 'you fall to the Prisoner. You are a disgrace to House Judgement'
     },
     { 
       name: 'The Dreadnaught',
@@ -56,7 +63,9 @@ export default {
         'Golgoroth',
         'The Daughters of Oryx',
         'Oryx, The Taken King'
-      ] 
+      ],
+      successMessage: 'you emerge victorious in the Hive Throne World and claim strength by the Sword Logic.',
+      defeatMessage: 'you fail in the Hive Throne World and dissolve into the blade of your superior, your strength taken by the Sword Logic.'
     },
     { 
       name: 'The Perfection Complex',
@@ -64,7 +73,9 @@ export default {
         'Vosik, the Archpriest',
         'The Siege Engine',
         'Aksis, Archon Prime'
-      ] 
+      ],
+      successMessage: 'you quell the corruption of SIVA and defeat those who have been augmented with its abilities.',
+      defeatMessage: 'you are consumed by SIVA, lost to the corruption of this all powerful organism.'
     }
   ],
 
