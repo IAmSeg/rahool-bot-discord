@@ -1188,63 +1188,112 @@ export default class Api {
 
   // @summary starts a raid battle. users will have 60 seconds to join in once the battle starts
   // @param userId - calling user
-  raid(userId) {
+  startRaid(userId) {
     try {
       const raidRef = this.database.ref(`raid`);
       raidRef.once('value', snapshot => {
-        // raid cooldown
-        if (snapshot.val().raidCooldown) {
-          this.bot.sendMessage({
-            to: this.channelId,
-            message: `<@${userId}> the Vanguard has forbidden raiding for a short time due to the recent raid activity.`
-          });
-
-          return;
-        }
-        // raid is about to start, add users to existing raid
-        if (snapshot.val().starting) {
-          let currentRaidMembers = snapshot.val().users;
-          currentRaidMembers.push(userId);
-          raidRef.update({ users: currentRaidMembers });
-
-          this.bot.sendMessage({
-            to: this.channelId,
-            message: `<@${userId}> has joined the raid group. Type **!raid** to join.`
-          });
-        }
-        else {
-          raidRef.update({ starting: true, users: [ userId ] });
-          this.bot.sendMessage({
-            to: this.channelId,
-            message: `<@${userId}> has started a raid group, you have 60 seconds to join. Type **!raid** to join.`
-          });
-
-          // start the raid in 60 seconds
-          setTimeout(() => {
-            raidRef.update({ starting: false, raidCooldown: true });
-
-            let userList = snapshot.val().users.reduce((list, user) => `${list} <@${user}>\n`, ``);
-            let enemyLight = utilities.randomNumberBetween(battleConfig.raidLightConfig.min * lightLevelConfig.maxLight, battleConfig.raidLightConfig.max * lightLevelConfig.maxLight);
-            let totalLight = snapshot.val().users.reduce((sum, user) => sum + lightLevelConfig.calculateLightLevel(user), 0);
-            // calculate chance to win
-            let chanceToWin = battleConfig.calculateChanceToWin(totalLight, enemyLight, 9);
+        try {
+          // raid cooldown
+          if (utilities.minutesSince(snapshot.val().raidCooldown) < 10) {
             this.bot.sendMessage({
               to: this.channelId,
-              message: `${userList} at your current combined light of **${totalLight}** you have a **${chanceToWin}%** chance to win`
+              message: `<@${userId}> the Vanguard has forbidden raiding for a short time due to the recent raid activity.`
             });
-          }, 60000);
 
-          // reset the raid cooldown
-          setTimeout(() => {
-            raidRef.update({ raidCooldown: false });
-          }, 5 * 60 * 1000);
+            return;
+          }
+
+          // get some unique raid id, but dont go over 9999 for simplicity sake
+          let raidId = Number(userId.substring(userId.length - 4, userId.length)) + utilities.randomNumberBetween(1, 1000);
+          if (raidId > 9999)
+            raidId -= utilities.randomNumberBetween(1, 1000);
+
+          raidRef.update({ raidCooldown: moment().unix() });
+          this.database.ref(`raid/${raidId}`).set({
+            id: raidId,
+            users: [ userId ],
+            time: moment().unix()
+          }, () => {
+            let message = `<@${userId}> you have initiated the raid protocol. Your raid ID is **${raidId}**.\n`
+            message += `Gaurdians have 60 seconds to join your raid.`;
+            message += `Type **!joinraid ${raidId}** to join.`;
+
+            this.bot.sendMessage({
+              to: this.channelId,
+              message
+            });
+          });
         }
-      })
+        catch (e) {
+          this.error();
+          logger.error(`Error in snapshot raid for ${userId}: ${e}`);
+        }
+      });
     }
     catch (e) {
       this.error();
       logger.error(`Error in raid for ${userId}: ${e}`);
     }
+  }
+
+  // @summary - lets a user join a raid
+  // @userId - user who wants to join
+  // @raidId - id of raid to join
+  joinRaid(userId, raidId) {
+    try {
+      const raidRef = this.database.ref(`raid/${raidId}`);
+      raidRef.once('value', s => {
+        try {
+          if (s.val()) {
+            // if the raid join timer has expired
+            if (utilities.minutesSince(s.val().time) > 1) {
+              this.bot.sendMessage({
+                to: this.channelId,
+                message: `<@${userId}> the join period for that raid has expired.`
+              });
+
+              return;
+            }
+
+            let users = s.val().users;
+            // if the user has already joined this raid
+            if (Object.values(users).indexOf(userId) > -1) {
+              this.bot.sendMessage({
+                to: this.channelId,
+                message: `<@${userId}> you have already joined raid ${raidId}. The raid will start soon.`
+              });
+
+              return;
+            }
+
+            users.push(userId);
+            raidRef.update({ users }, () => {
+              this.bot.sendMessage({
+                to: this.channelId,
+                message: `<@${userId}> you successfully joined raid ${raidId}. The raid will start soon.`
+              });
+            });
+          }
+          else {
+            this.bot.sendMessage({
+              to: this.channelId,
+              message: `<@${userId}> could not find that raid to join.`
+            });
+
+            return;
+          }
+        }
+        catch (e) {
+          this.error();
+          logger.error(`Error joining raid in snapshot for user ${userId} for raid ${raidId}.`);
+        }
+      })
+    }
+    catch (e) {
+      this.error();
+      logger.error(`Error joining raid for user ${userId} for raid ${raidId}.`);
+    }
+
   }
 
    /* ----------------------- *\

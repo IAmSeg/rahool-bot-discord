@@ -333,6 +333,33 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       }
     }
 
+    // raid protocol
+    // if (message === '!startraid') 
+    //   api.startRaid(userId);
+
+    // if (message.split(' ')[0] === '!joinraid') {
+    //   if (message.split(' ').length < 2) {
+    //     bot.sendMessage({
+    //       to: channelId,
+    //       message: `<@${userId}>, please specify a raid id to join. **!joinraid RAID_ID**`
+    //     });
+
+    //     return;
+    //   }
+
+    //   let raidId = message.split(' ')[1];
+    //   if (isNaN(raidId)) {
+    //     bot.sendMessage({
+    //       to: channelId,
+    //       message: `<@${userId}>, that is not a valid raid id. **!joinraid RAID_ID**`
+    //     });
+
+    //     return;
+    //   }
+
+    //   api.joinRaid(userId, raidId);
+    // }
+
     if (message === '!aboutfrag') {
       let message = `Glimmer is a programmable currency which is kept track of in the Glimmer Mainframe. With each glimmer transaction, the Mainframe hardware fragments, and the volatility of the glimmer economy rises. If the Mainframe reaches 100% fragmentation, it will crash, `;
       message += `destroying the glimmer economy and wiping all glimmer from the system. Larger transactions fragment the Mainframe faster. Type **!frag** to check the current fragmentation rate.`;
