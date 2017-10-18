@@ -1285,7 +1285,7 @@ export default class Api {
           if (minutesSinceLastRaid < 10) {
             this.bot.sendMessage({
               to: this.channelId,
-              message: `<@${userId}> the Vanguard has forbidden raiding for a short time due to the recent raid activity. You may raid again in **${10 -minutesSinceLastRaid} minutes.**`
+              message: `<@${userId}> the Vanguard has forbidden raiding for a short time due to the recent raid activity. You may raid again in **${(10 - minutesSinceLastRaid).toFixed(2)} minutes.**`
             });
 
             return;
@@ -1518,7 +1518,36 @@ export default class Api {
     }
   }
 
+  // @summary - checks the gaurdian count and total light for a raid
+  // @userId - calling user
+  // @raidId - raid to check party for
+  raidParty(userId, raidId) {
+    try {
+      const raidRef = this.database.ref(`raid/${raidId}`);
+      raidRef.once('value', s => {
+        if (s.val()) {
+          let raidCount = s.val().users.length;
+          let totalLight = s.val().users.reduce((sum, user) => sum + user.light, 0);
 
+          this.bot.sendMessage({
+            to: this.channelId,
+            message: `Raiding party for raid ${raidId}:\nGaurdian Count: **${raidCount}**\nCombined Light: **${totalLight}**`
+          });
+        }
+        else {
+          this.bot.sendMessage({
+            to: this.channelId,
+            message: `<@${userId}> I couldn't find a raid with that ID.`
+          });
+        }
+      })
+    }
+    catch (e) {
+      this.error(`I'm sorry. Something went wrong with the !raidparty command. Hold off until someone can fix it.`);
+      logger.error(`Error in raidparty for user ${userId} for raid ${raidId}: ${e}`);
+    }
+
+  }
 
    /* ----------------------- *\
        #end battles

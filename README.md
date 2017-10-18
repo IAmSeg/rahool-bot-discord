@@ -26,6 +26,9 @@ if you'd like to run it yourself with your own API keys.
 * **!battle ENEMY_TIER** - Battles an enemy in your selected tier (1-8)
 * **!battlecooldown** - Check your current battle cooldown time
 * **!battlelog** - Check your total battle wins/losses/glimmer
+* **!joinraid RAID_ID** - Join a raid with id RAID_ID
+* **!startraid RAID_ID** - Start a raid with id RAID_ID
+* **!raidparty RAID_ID** - Check the gaurdian count/combined light for a raid with id RAID_ID
 * **!loan AMOUNT @user** - Loan AMOUNT glimmer to a user
 * **!collect AMOUNT @user** - Collect a loan of AMOUNT glimmer from @user who you have loaned to
 * **!repay AMOUNT @user** - Repay a loan of AMOUNT glimmer to @user who has loaned glimmer to you

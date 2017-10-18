@@ -389,6 +389,29 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       api.startRaid(userId, raidId);
     }
 
+    if (message.split(' ')[0] === '!raidparty') {
+      if (message.split(' ').length < 2) {
+        bot.sendMessage({
+          to: channelId,
+          message: `<@${userId}>, please specify a raid id to check party for. **!raidparty RAID_ID**`
+        });
+
+        return;
+      }
+
+      let raidId = message.split(' ')[1];
+      if (isNaN(raidId)) {
+        bot.sendMessage({
+          to: channelId,
+          message: `<@${userId}>, that is not a valid raid id. **!raidparty RAID_ID**`
+        });
+
+        return;
+      }
+
+      api.raidParty(userId, raidId);
+    }
+
     if (message === '!aboutfrag') {
       let message = `Glimmer is a programmable currency which is kept track of in the Glimmer Mainframe. With each glimmer transaction, the Mainframe hardware fragments, and the volatility of the glimmer economy rises. If the Mainframe reaches 100% fragmentation, it will crash, `;
       message += `destroying the glimmer economy and wiping all glimmer from the system. Larger transactions fragment the Mainframe faster. Type **!frag** to check the current fragmentation rate.`;
@@ -430,6 +453,10 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       message += `**!battle ENEMY_TIER** - Battles an enemy in your selected tier (1-8).\n`;
       message += `**!battlecooldown** - Check your current battle cooldown time.\n`;
       message += `**!battlelog** - Check your total battle wins/losses/glimmer.\n`;
+      message += `**!raid** - Iniate the raid protocol.\n`;
+      message += `**!joinraid RAID_ID** - Join a raid with id RAID_ID.\n`;
+      message += `**!startraid RAID_ID** - Start a raid with id RAID_ID.\n`;
+      message += `**!raidparty RAID_ID** - Check the gaurdian count/combined light for a raid with id RAID_ID.\n`;
       message += `**!loan AMOUNT @user** - Loan AMOUNT glimmer to a user.\n`;
       message += `**!collect AMOUNT @user** - Collect a loan of AMOUNT glimmer from @user who you have loaned to.\n`;
       message += `**!repay AMOUNT @user** - Repay a loan of AMOUNT glimmer to @user who has loaned glimmer to you.\n`;
