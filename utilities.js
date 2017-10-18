@@ -9,6 +9,14 @@ const utilities = {
     return Math.floor(Math.random() * (max - min) + min);
   },
 
+  // @summary returns a random number between min and max inclusive, not floored, to 2 decimal places
+  // @param - min number
+  // @param - max number
+  // @returns - random number between min and max
+  randomNumberBetweenTo2(min, max) {
+    return (Math.random() * (max - min) + min).toFixed(2);
+  },
+
   // @summary gets a random item from an array
   // @param arr - array to get random item from
   // @returns - random item from arr

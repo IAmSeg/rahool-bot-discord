@@ -34,15 +34,16 @@ export default class Api {
   }
 
   // @summary - lets the user know that an error occurred
-  error() {
+  error(message = `I'm sorry, something went wrong. Hang off on that command until someone can fix it.`) {
+    if (!message)
     this.bot.sendMessage({
       to: this.channelId,
-      message: `I'm sorry, something went wrong. Hang off on that command until someone can fix it.`
+      message
     });
   }
 
   /* -------------------- *\
-       &user functions
+       #user functions
   \* ---------------------*/
 
   // @summary general function that writes user initial data
@@ -76,7 +77,6 @@ export default class Api {
     }
     catch (e) {
       logger.error(`Error in writeData for ${userId}: ${e}`);
-      this.error();
     }
   }
 
@@ -92,7 +92,6 @@ export default class Api {
           user.update({ glimmer: snapshot.val().glimmer + amount });
       }
       catch (e) { 
-        this.error();
         logger.error(`Error adding glimmer to user: ${userId}: ${e}`); 
       }
     });
@@ -109,7 +108,6 @@ export default class Api {
         user.update({ glimmer: snapshot.val().glimmer - amount });
       }
       catch (e) { 
-        this.error();
         logger.error(`Error taking glimmer from user: ${userId}: ${e}`); 
       }
     });
@@ -162,7 +160,7 @@ export default class Api {
         } 
         catch (e) { 
           logger.error(`Error in getcurrentglimmer for user: ${userId}: ${e}`); 
-          this.error();
+          this.error(`I'm sorry, something went wrong with the !glimmer command. Hold off until someone can fix it.`);
         }
       });
     }
@@ -173,11 +171,11 @@ export default class Api {
   }
 
   /* -------------------- *\
-       &end user functions
+       #end user functions
   \* ---------------------*/
 
   /* ------------------------- *\
-          &gambling 
+          #gambling 
   \* ------------------------- */
 
   // @summary gets a list of users and their light levels and sorts them from highest to lowest
@@ -268,24 +266,24 @@ export default class Api {
           }
         }
         catch (e) { 
-          this.error();
+          this.error(`I'm sorry. Something went wrong with the !gamble command. Hold off until someone can fix it.`);
           logger.error(`Error in gambleGlimmer for user: ${userId} amount ${amount}: ${e}`); 
         }
       });
     }
     catch (e) {
-      this.error();
+      this.error(`I'm sorry. Something went wrong with the !gamble command. Hold off until someone can fix it.`);
       logger.error(`Error in gambleGlimmer for ${userId} and amount ${amount}: ${e}`);
     }
   }
 
   /* ------------------------- *\
-          &end gambling 
+          #end gambling 
   \* ------------------------- */
 
 
   /* ------------------------------------------ *\
-       &glimmer bank/fragmentation functions
+       #glimmer bank/fragmentation functions
   \* -------------------------------------------*/
 
   // @summary - fragments the glimmer mainframe for each transaction based on the amount
@@ -334,7 +332,7 @@ export default class Api {
           });
         }
         catch (e) { 
-          this.error();
+          this.error(`I'm sorry. Something is wrong with the !defrag command. Hold off until someone can fix it.`);
           logger.error(`Error in defragGlimmerMainframe for user: ${userId}: ${e}`); 
         }
       });
@@ -348,7 +346,7 @@ export default class Api {
       this.getFragmentationRate();
     } 
     catch (e) {
-      this.error();
+      this.error(`I'm sorry. Something is wrong with the !defrag command. Hold off until someone can fix it.`);
       logger.error(`Error in defragGlimmerMainframe for amount ${amount}: ${e}`);
     }
   }
@@ -419,13 +417,13 @@ export default class Api {
           });
         }
         catch (e) { 
-          this.error();
+          this.error(`I'm sorry. Something went wrong with the !frag command. Hold off until someone can fix it.`);
           logger.error(`Error in getFragmentationRate: ${e}`); 
         }
       });
     } 
     catch (e) {
-      this.error();
+      this.error(`I'm sorry. Something went wrong with the !frag command. Hold off until someone can fix it.`);
       logger.error(`Error in getFragmentationRate: ${e}`);
     }
   }
@@ -465,13 +463,13 @@ export default class Api {
           });
         }
         catch (e) { 
-          this.error();
+          this.error(`I'm sorry. Something went wrong with the !bankamount command. Hold off until someone can fix it.`);
           logger.error(`Error getting bank amount: ${e}`); 
         }
       });
     }
     catch (e) {
-      this.error();
+      this.error(`I'm sorry. Something went wrong with the !bankamount command. Hold off until someone can fix it.`);
       logger.error(`Error in getBankAmount: ${e}`);
     }
   }
@@ -524,7 +522,7 @@ export default class Api {
                 bankRef.update({ amount: 0 });
               }
               catch (e) { 
-                this.error();
+                this.error(`I'm sorry. Something went wrong with the !robbank command. Hold off until someone can fix it.`);
                 logger.error(`Error robbing bank for user: ${userId}: ${e}`); 
               }
             });
@@ -543,23 +541,23 @@ export default class Api {
           }
         }
         catch (e) { 
-          this.error();
+          this.error(`I'm sorry. Something went wrong with the !robbank command. Hold off until someone can fix it.`);
           logger.error(`Error robbing bank for user: ${userId}: ${e}`); 
         }
       });
     }
     catch (e) {
-      this.error();
+      this.error(`I'm sorry. Something went wrong with the !robbank command. Hold off until someone can fix it.`);
       logger.error(`Error in robBank: ${e}`);
     }
   }
 
   /* ------------------------------------------ *\
-       &end glimmer bank/fragmentation functions
+       #end glimmer bank/fragmentation functions
   \* -------------------------------------------*/
 
   /* ------------------------------------------ *\
-       &light level/engram functions
+       #light level/engram functions
   \* -------------------------------------------*/
 
   // @summary gets current loadout for user. this includes their specific item names and light levels
@@ -586,13 +584,13 @@ export default class Api {
           });
         } 
         catch (e) { 
-          this.error();
+          this.error(`I'm sorry. Something went wrong with the !loadout command. Hold off until someone can fix it.`);
           logger.error(`Error getting loadout for user: ${userId}: ${e}`); 
         }
      });
     }
     catch (e) {
-      this.error();
+      this.error(`I'm sorry. Something went wrong with the !loadout command. Hold off until someone can fix it.`);
       logger.error(`Error in getLoadout for ${userId}: ${e}`);
     }
   }
@@ -621,13 +619,13 @@ export default class Api {
           });
         }
         catch (e) { 
-          this.error();
+          this.error(`I'm sorry. Something went wrong with the !lightrank command. Hold off until someone can fix it.`);
           logger.error(`Error getting light rank: ${e}`); 
         }
       });
     }
     catch (e) {
-      this.error();
+      this.error(`I'm sorry. Something went wrong with the !lightrank command. Hold off until someone can fix it.`);
       logger.error(`Error in getLightRank: ${e}`);
     }
   }
@@ -664,12 +662,12 @@ export default class Api {
         }
         catch (e) { 
           logger.error(`Error getting current light for user: ${userId}: ${e}`); 
-          this.error();
+          this.error(`I'm sorry. Something went wrong with the !light command. Hold off until someone can fix it.`);
         }
       });
     }
     catch (e) {
-      this.error();
+      this.error(`I'm sorry. Something went wrong with the !light command. Hold off until someone can fix it.`);
       logger.error(`Error in getCurrentLight for ${userId}: ${e}.`);
     }
   }
@@ -725,20 +723,20 @@ export default class Api {
                 });
               }
               catch (e) { 
-                this.error();
+                this.error(`I'm sorry. Something went wrong with the !buyengram command. Hold off until someone can fix it.`);
                 logger.error(`Error getting engram from db for user: ${userId}: ${e}`); 
               }
             });
           }
         }
         catch (e) { 
-          this.error();
+          this.error(`I'm sorry. Something went wrong with the !buyengram command. Hold off until someone can fix it.`);
           logger.error(`Error getting engram for user: ${userId}: ${e}`); 
         }
       }); 
     }
     catch (e) {
-      this.error();
+      this.error(`I'm sorry. Something went wrong with the !buyengram command. Hold off until someone can fix it.`);
       logger.error(`Error in getEngram for ${userId}: ${e}.`);
     }
   }
@@ -904,12 +902,12 @@ export default class Api {
     }
   }
   /* ------------------------------------------ *\
-       &end light level/engram functions
+       #end light level/engram functions
   \* -------------------------------------------*/
 
   
   /* ----------------------- *\
-       &vendor engrams
+       #vendor engrams
   \* ------------------------*/
   // @summary checks for 300 level gear from vendorengrams.xyz
   get300Vendors() {
@@ -962,11 +960,11 @@ export default class Api {
   }
 
   /* ----------------------- *\
-       &end vendor engrams
+       #end vendor engrams
   \* ------------------------*/
 
   /* ----------------------- *\
-       &battles
+       #battles
   \* ------------------------*/
 
   // @summar - gets the battle cooldown for a user
@@ -983,13 +981,13 @@ export default class Api {
           })
         }
         catch (e) { 
-          this.error();
+          this.error(`I'm sorry. Something went wrong with the !battlecooldown command. Hold off until someone can fix it.`);
           logger.error(`Error getting battle cooldown for user: ${userId}: ${e}`); 
         }
       });
     }
     catch (e) {
-      this.error();
+      this.error(`I'm sorry. Something went wrong with the !battlecooldown command. Hold off until someone can fix it.`);
       logger.error(`Error in getBattleCooldown for ${userId}: ${e}`);
     }
   }
@@ -1020,7 +1018,7 @@ export default class Api {
           let chanceToWin = battleConfig.calculateChanceToWin(yourLight, enemyLight, tier);
           let won = false;
 
-          let message = `<@${userId}>, ${battleConfig.battleStartMessages[battleStartMessageIndex]} ${battleConfig.enemyConfig[enemyRaceIndex].locations[enemyLocationIndex]}, you run across a **${selectedEnemy}** at **${enemyLight} light**. `;
+          let message = `<@${userId}>, ${battleConfig.battleStartMessages[battleStartMessageIndex]} ${battleConfig.enemyConfig[enemyRaceIndex].locations[enemyLocationIndex]}, you run across a **${selectedEnemy}** at **${enemyLight} power**. `;
           message += `At your current light of **${yourLight}** you have a **${chanceToWin}%** chance to win. `;
 
           message += `${battleConfig.battleCries[battleCryIndex]}. The battle begins.`;
@@ -1030,7 +1028,7 @@ export default class Api {
             message
           });
 
-          let roll = utilities.randomNumberBetween(1, 100);
+          let roll = utilities.randomNumberBetweenTo2(1, 100);
           if (roll <= chanceToWin)
             won = true;
 
@@ -1131,13 +1129,13 @@ export default class Api {
           this.fragmentGlimmerMainframe(glimmerWonOrLost);
         }
         catch (e) {
-          this.error();
+          this.error(`I'm sorry. Something went wrong with the !battle command. Hold off until someone can fix it.`);
           logger.error(`Error in battle for user: ${userId}: ${e}.`);
         }
       });
     }
     catch (e) {
-      this.error();
+      this.error(`I'm sorry. Something went wrong with the !battle command. Hold off until someone can fix it.`);
       logger.error(`Error in battle for user: ${userId}: ${e}.`);
     }
   }
@@ -1163,7 +1161,10 @@ export default class Api {
           let totalWins = 0;
           let totalLosses = 0;
           for (let i in battleLog) {
-            message += `Tier ${i}: Won: ${battleLog[i].won || 0}, Lost: ${battleLog[i].loss || 0}, Glimmer Won/Lost: ${battleLog[i].glimmer}\n`;
+            if (i === 9)
+              message += `Raids: Won: ${battleLog[i].won || 0}, Lost: ${battleLog[i].loss || 0}, Glimmer Won/Lost: ${battleLog[i].glimmer}\n`;
+            else
+              message += `Tier ${i}: Won: ${battleLog[i].won || 0}, Lost: ${battleLog[i].loss || 0}, Glimmer Won/Lost: ${battleLog[i].glimmer}\n`;
             totalWins += (battleLog[i].won ? battleLog[i].won : 0);
             totalLosses += (battleLog[i].loss ? battleLog[i].loss : 0);
             totalGlimmer += battleLog[i].glimmer;
@@ -1186,18 +1187,19 @@ export default class Api {
     }
   }
 
-  // @summary starts a raid battle. users will have 60 seconds to join in once the battle starts
+  // @summary initiates the raid protocol. users will have 60 seconds to join in once the battle starts
   // @param userId - calling user
-  startRaid(userId) {
+  raid(userId) {
     try {
       const raidRef = this.database.ref(`raid`);
       raidRef.once('value', snapshot => {
         try {
           // raid cooldown
-          if (utilities.minutesSince(snapshot.val().raidCooldown) < 10) {
+          let minutesSinceLastRaid = utilities.minutesSince(snapshot.val().raidCooldown);
+          if (minutesSinceLastRaid < 10) {
             this.bot.sendMessage({
               to: this.channelId,
-              message: `<@${userId}> the Vanguard has forbidden raiding for a short time due to the recent raid activity.`
+              message: `<@${userId}> the Vanguard has forbidden raiding for a short time due to the recent raid activity. You may raid again in **${10 -minutesSinceLastRaid} minutes.**`
             });
 
             return;
@@ -1209,29 +1211,42 @@ export default class Api {
             raidId -= utilities.randomNumberBetween(1, 1000);
 
           raidRef.update({ raidCooldown: moment().unix() });
-          this.database.ref(`raid/${raidId}`).set({
-            id: raidId,
-            users: [ userId ],
-            time: moment().unix()
-          }, () => {
-            let message = `<@${userId}> you have initiated the raid protocol. Your raid ID is **${raidId}**.\n`
-            message += `Gaurdians have 60 seconds to join your raid.`;
-            message += `Type **!joinraid ${raidId}** to join.`;
+          this.database.ref(`users/${userId}`).once('value', userSnapshot => {
+            try {
+              let userLight = lightLevelConfig.calculateLightLevel(userSnapshot.val());
+              let users = [{ id: userId, light: userLight}];
 
-            this.bot.sendMessage({
-              to: this.channelId,
-              message
-            });
+              this.database.ref(`raid/${raidId}`).set({
+                id: raidId,
+                initiator: userId,
+                users,
+                time: moment().unix()
+              }, () => {
+                let message = `<@${userId}> you have initiated the raid protocol. Your raid ID is **${raidId}**.\n`
+                message += `Gaurdians have 60 seconds to join your raid.`;
+                message += `Type **!joinraid ${raidId}** to join.\n`;
+                message += `In 60 seconds, you may type **!startraid ${raidId}** to begin the raid.`;
+
+                this.bot.sendMessage({
+                  to: this.channelId,
+                  message
+                });
+              });
+            }
+            catch (e) {
+              this.error(`I'm sorry. Something went wrong with the !raid command. Hold off until someone can fix it.`);
+              logger.error(`Error in usersnapshot raid for ${userId}: ${e}`);
+            }
           });
         }
         catch (e) {
-          this.error();
+          this.error(`I'm sorry. Something went wrong with the !raid command. Hold off until someone can fix it.`);
           logger.error(`Error in snapshot raid for ${userId}: ${e}`);
         }
       });
     }
     catch (e) {
-      this.error();
+      this.error(`I'm sorry. Something went wrong with the !raid command. Hold off until someone can fix it.`);
       logger.error(`Error in raid for ${userId}: ${e}`);
     }
   }
@@ -1257,7 +1272,8 @@ export default class Api {
 
             let users = s.val().users;
             // if the user has already joined this raid
-            if (Object.values(users).indexOf(userId) > -1) {
+            let existingUser = users.filter(u => u.id == userId)[0];
+            if (existingUser) {
               this.bot.sendMessage({
                 to: this.channelId,
                 message: `<@${userId}> you have already joined raid ${raidId}. The raid will start soon.`
@@ -1266,12 +1282,21 @@ export default class Api {
               return;
             }
 
-            users.push(userId);
-            raidRef.update({ users }, () => {
-              this.bot.sendMessage({
-                to: this.channelId,
-                message: `<@${userId}> you successfully joined raid ${raidId}. The raid will start soon.`
-              });
+            // add the user to the list of users for this raid
+            this.database.ref(`users/${userId}`).once('value', userSnapshot=> {
+              try {
+                users.push({ id: userId, light: lightLevelConfig.calculateLightLevel(userSnapshot.val()) });
+                raidRef.update({ users }, () => {
+                  this.bot.sendMessage({
+                    to: this.channelId,
+                    message: `<@${userId}> you successfully joined raid ${raidId}. The raid will start soon.`
+                  });
+                });
+              }
+              catch (e) {
+                this.error(`I'm sorry. Something went wrong with the !joinraid command. Hold off until someone can fix it.`);
+                logger.error(`Error joining raid in user snapshot for user ${userId} for raid ${raidId}: ${e}.`);
+              }
             });
           }
           else {
@@ -1284,24 +1309,113 @@ export default class Api {
           }
         }
         catch (e) {
-          this.error();
-          logger.error(`Error joining raid in snapshot for user ${userId} for raid ${raidId}.`);
+          this.error(`I'm sorry. Something went wrong with the !joinraid command. Hold off until someone can fix it.`);
+          logger.error(`Error joining raid in snapshot for user ${userId} for raid ${raidId}: ${e}.`);
         }
       })
     }
     catch (e) {
-      this.error();
-      logger.error(`Error joining raid for user ${userId} for raid ${raidId}.`);
+      this.error(`I'm sorry. Something went wrong with the !joinraid command. Hold off until someone can fix it.`);
+      logger.error(`Error joining raid for user ${userId} for raid ${raidId}: ${e}.`);
     }
+  }
 
+  // @summary - starts a raid after the raid join timer has expired
+  // @param userId - user who is starting the raid
+  // @param raidId - id of raid to start
+  startRaid(userId, raidId) {
+    try {
+      const raidRef = this.database.ref(`raid/${raidId}`);
+      raidRef.once('value', s => {
+        try {
+          if (s.val()) {
+            // the person trying to start the raid isnt the initiator
+            if (s.val().initiator != userId) {
+              this.bot.sendMessage({
+                to: this.channelId,
+                message: `<@${userId}> I'm sorry, you did not initiate the raid protocol for that raid. <@${s.val().initiator}> must start the raid.`
+              });
+
+              return;
+            }
+
+            // it hasn't been 60 seconds since the raid was initiated
+            let minutesSince = Math.abs(utilities.minutesSince(s.val().time)).toFixed(2);
+            if (minutesSince < 1) {
+              this.bot.sendMessage({
+                to: this.channelId,
+                message: `<@${userId}> I'm sorry, the raid join timer has not expired yet. You can start the raid in ${1 - minutesSince} minutes.`
+              });
+
+              return;
+            }
+
+            // let's get started
+            let selectedRaidObj = utilities.getRandomFrom(battleConfig.raidBosses);
+            let raidName = selectedRaidObj.name;
+            let raidBoss = utilities.getRandomFrom(selectedRaidObj.bosses);
+            let enemyLight = utilities.randomNumberBetween(battleConfig.raidLightConfig.min * lightLevelConfig.maxLight, battleConfig.raidLightConfig.max * lightLevelConfig.maxLight);
+            let totalLight = s.val().users.reduce((sum, user) => sum + user.light, 0);
+            let userList = s.val().users.reduce((list, user) => `<@${user.id}>, ${list}`, ``);
+            let chanceToWin = battleConfig.calculateChanceToWin(totalLight, enemyLight, 9);
+            let glimmerBounty = battleConfig.calculateGlimmerWon(chanceToWin, 9);
+
+            let message = `${userList}\n the Vanguard has issued a bounty of **${glimmerBounty} glimmer** for an exceptionally evil enemy located in **${raidName}**.\n`;
+
+            this.bot.sendMessage({
+              to: this.channelId,
+              message
+            });
+
+            setTimeout(() => {
+              this.bot.sendMessage({
+                to: this.channelId,
+                message: `You rally together as a fireteam and descend into ${raidName}.`
+              })
+            }, 4000);
+
+            setTimeout(() => {
+              this.bot.sendMessage({
+                to: this.channelId,
+                message: `After searching for some time, you finally find your prey. Out of the darkness rises **${raidBoss}** at **${enemyLight}** power.`
+              })
+            }, 8000);
+
+            setTimeout(() => {
+              this.bot.sendMessage({
+                to: this.channelId,
+                message: `At your current combined light of **${totalLight}**, you have a **${chanceToWin}%** chance of winning the fight.`
+              })
+            }, 10000);
+
+            // remove the raid from the object
+            raidRef.remove();
+          }
+          else {
+            this.bot.sendMessage({
+              to: this.channelId,
+              message: `<@${userId}> I was unable to find a raid with that id to start.`
+            });
+          }
+        }
+        catch (e) {
+          this.error(`I'm sorry. Something went wrong with the !startraid command. Hold off until someone can fix it.`);
+          logger.error(`Error in snapshot startRaid for user ${userId} for raid ${raidId}: ${e}`);
+        }
+      });
+    }
+    catch (e) {
+      this.error(`I'm sorry. Something went wrong with the !startraid command. Hold off until someone can fix it.`);
+      logger.error(`Error in startRaid for user ${userId} for raid ${raidId}: ${e}`);
+    }
   }
 
    /* ----------------------- *\
-       &end battles
+       #end battles
   \* ------------------------*/
 
    /* ----------------------- *\
-       &loans
+       #loans
   \* ------------------------*/
 
   // @summary loans glimmer from one user to another
@@ -1350,14 +1464,14 @@ export default class Api {
           }
         }
         catch (e) { 
-          this.error();
+          this.error(`I'm sorry. Something went wrong with the !loan command. Hold off until someone can fix it.`);
           logger.error(`Error in loan for user: ${userId} to ${laonTo} for amount ${amount}: ${e}`); 
         }
       });
     }
     catch (e) {
       logger.error(`Error in loan from ${loaner} to ${loanTo} for amount: ${amount}: ${e}`);
-      this.error();
+      this.error(`I'm sorry. Something went wrong with the !loan command. Hold off until someone can fix it.`);
     }
   }
 
@@ -1402,14 +1516,12 @@ export default class Api {
           }
         }
         catch (e) { 
-          this.error();
           logger.error(`Error in give loan to for user: ${loaner} to ${laonTo} for amount ${amount}: ${e}`); 
         }
       });
 
     }
     catch (e) {
-      this.error();
       logger.error(`Error in giveLoanTo for ${loanTo} for amount: ${amount}: ${e}`);
     }
   }
@@ -1444,13 +1556,13 @@ export default class Api {
           }
         }
         catch (e) { 
-          this.error();
+          this.error(`I'm sorry. Something went wrong with the !loans command. Hold off until someone can fix it.`);
           logger.error(`Error getting loans for user: ${userId}: ${e}`); 
         }
       });
     } 
     catch (e) {
-      this.error();
+      this.error(`I'm sorry. Something went wrong with the !loans command. Hold off until someone can fix it.`);
       logger.error(`Error in getDebt for user: ${userId}: ${e}`);
     }
   }
@@ -1485,13 +1597,13 @@ export default class Api {
           }
         }
         catch (e) { 
-          this.error();
+          this.error(`I'm sorry. Something went wrong with the !debt command. Hold off until someone can fix it.`);
           logger.error(`Error getting debt for user: ${userId}: ${e}`); 
         }
       });
     } 
     catch (e) {
-      this.error();
+      this.error(`I'm sorry. Something went wrong with the !debt command. Hold off until someone can fix it.`);
       logger.error(`Error in getDebt for user: ${userId}: ${e}`);
     }
   }
@@ -1534,7 +1646,7 @@ export default class Api {
                     userRef.update({ loans });
                   }
                   catch (e) { 
-                    this.error();
+                    this.error(`I'm sorry. Something went wrong with the !collect command. Hold off until someone can fix it.`);
                     logger.error(`Error in adding loan object to user: ${userId} from ${collectFromId}: ${e}`); 
                   }
                 });
@@ -1555,13 +1667,13 @@ export default class Api {
             }
           }
           catch (e) { 
-            this.error();
+            this.error(`I'm sorry. Something went wrong with the !collect command. Hold off until someone can fix it.`);
             logger.error(`Error in collect for user: ${userId} from ${collectFromId} for amount ${amount}: ${e}`); 
           }
       });
     }
     catch (e) {
-      this.error();
+      this.error(`I'm sorry. Something went wrong with the !collect command. Hold off until someone can fix it.`);
       logger.error(`Error in collect for ${userId} to ${collectFromId} for amount: ${amount}.`);
     }
   }
@@ -1604,7 +1716,7 @@ export default class Api {
                     repayToRef.update({ loans });
                   }
                   catch (e) { 
-                    this.error();
+                    this.error(`I'm sorry. Something went wrong with the !repay command. Hold off until someone can fix it.`);
                     logger.error(`Error adding loans object to user: ${repayToId} from ${userId} for ${amount}: ${e}`); 
                   }
                 });
@@ -1639,18 +1751,18 @@ export default class Api {
         }
         catch (e) { 
           logger.error(`Error repaying ${amount} to user: ${repayToId} from ${userId}: ${e}`); 
-          this.error();
+          this.error(`I'm sorry. Something went wrong with the !repay command. Hold off until someone can fix it.`);
         }
       });
     }
     catch (e) {
-      this.error();
+      this.error(`I'm sorry. Something went wrong with the !repay command. Hold off until someone can fix it.`);
       logger.error(`Error in repay for ${userId} to ${repayToId} for amount: ${amount}.`);
     }
   }
 
   /* ----------------------- *\
-       &end loans
+       #end loans
   \* ------------------------*/
 }
 

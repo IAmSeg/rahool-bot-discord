@@ -24,6 +24,12 @@ var randomGames = [
   'Try !commands',
   'Hoarding exotics...',
   'Snorting bright dust',
+  'Rubbing Ikora\'s head',
+  'Polishing Zavala\'s armor',
+  'Stealing Cayde\'s cloak',
+  'Thinking of Petra',
+  'Dismantling shaders',
+  'Teabagging Tyra Karn'
 ];
 
 bot.on('ready', function (evt) {
@@ -32,7 +38,7 @@ bot.on('ready', function (evt) {
   logger.info(bot.username + ' - (' + bot.id + ')');
 
   setInterval(() => {
-    let rand = Math.floor(Math.random() * 8);
+    let rand = utilities.randomNumberBetween(0, randomGames.length - 1);
     bot.setPresence({ status: 'online', game: { name: randomGames[rand] }});
   }, 60000);
 });
@@ -334,31 +340,56 @@ bot.on('message', function (user, userId, channelId, message, evt) {
     }
 
     // raid protocol
-    // if (message === '!startraid') 
-    //   api.startRaid(userId);
+    if (user.indexOf('Seg') != -1 || user.indexOf('king') != -1) {
+      if (message === '!raid') 
+        api.raid(userId);
 
-    // if (message.split(' ')[0] === '!joinraid') {
-    //   if (message.split(' ').length < 2) {
-    //     bot.sendMessage({
-    //       to: channelId,
-    //       message: `<@${userId}>, please specify a raid id to join. **!joinraid RAID_ID**`
-    //     });
+      if (message.split(' ')[0] === '!joinraid') {
+        if (message.split(' ').length < 2) {
+          bot.sendMessage({
+            to: channelId,
+            message: `<@${userId}>, please specify a raid id to join. **!joinraid RAID_ID**`
+          });
 
-    //     return;
-    //   }
+          return;
+        }
 
-    //   let raidId = message.split(' ')[1];
-    //   if (isNaN(raidId)) {
-    //     bot.sendMessage({
-    //       to: channelId,
-    //       message: `<@${userId}>, that is not a valid raid id. **!joinraid RAID_ID**`
-    //     });
+        let raidId = message.split(' ')[1];
+        if (isNaN(raidId)) {
+          bot.sendMessage({
+            to: channelId,
+            message: `<@${userId}>, that is not a valid raid id. **!joinraid RAID_ID**`
+          });
 
-    //     return;
-    //   }
+          return;
+        }
 
-    //   api.joinRaid(userId, raidId);
-    // }
+        api.joinRaid(userId, raidId);
+      }
+
+      if (message.split(' ')[0] === '!startraid') {
+        if (message.split(' ').length < 2) {
+          bot.sendMessage({
+            to: channelId,
+            message: `<@${userId}>, please specify a raid id to start. **!startraid RAID_ID**`
+          });
+
+          return;
+        }
+
+        let raidId = message.split(' ')[1];
+        if (isNaN(raidId)) {
+          bot.sendMessage({
+            to: channelId,
+            message: `<@${userId}>, that is not a valid raid id. **!startraid RAID_ID**`
+          });
+
+          return;
+        }
+
+        api.startRaid(userId, raidId);
+      }
+    }
 
     if (message === '!aboutfrag') {
       let message = `Glimmer is a programmable currency which is kept track of in the Glimmer Mainframe. With each glimmer transaction, the Mainframe hardware fragments, and the volatility of the glimmer economy rises. If the Mainframe reaches 100% fragmentation, it will crash, `;

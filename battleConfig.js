@@ -26,7 +26,7 @@ export default {
 
   raidBosses: [
     { 
-      name: 'Vault of Glass',
+      name: 'The Vault of Glass',
       bosses: [
         'The Oracles',
         'The Templar',
@@ -69,10 +69,10 @@ export default {
   ],
 
   raidLightConfig: {
-    min: 20,
-    max: 28.5,
-    c1: .0145,
-    c2: -20,
+    min: 30,
+    max: 60,
+    c1: .0179176,
+    c2: -5.5444,
   },
 
   raidGlimmerConfig: {
