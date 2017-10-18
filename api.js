@@ -88,7 +88,8 @@ export default class Api {
     const user = this.database.ref(`users/${userId}`);
     user.once('value', snapshot => {
       try {
-        user.update({ glimmer: snapshot.val().glimmer + amount });
+        if (snapshot.val())
+          user.update({ glimmer: snapshot.val().glimmer + amount });
       }
       catch (e) { 
         this.error();
@@ -120,11 +121,21 @@ export default class Api {
   // @username - human friendly username of the user
   updateGlimmer(userId, username) {
     try {
-      this.addGlimmerToUser(userId, 5);
       this.addAmountToBank(5);
+      const user = this.database.ref(`users/${userId}`);
+      user.once('value', snapshot => {
+        try {
+          if (snapshot.val())
+            snapshot.ref.update({ glimmer: snapshot.val().glimmer + 5, username });
+          else
+            this.writeData(userId, username);  
+        }
+        catch (e) {
+          logger.error(`Error in updateGlimmer for ${userId}: ${e}.`);
+        }
+      });
     }
     catch (e) {
-      this.error();
       logger.error(`Error in updateGlimmer for ${userId}: ${e}.`);
     }
   }
@@ -290,14 +301,12 @@ export default class Api {
           this.checkMainframeFragmentation();
         }
         catch (e) { 
-          this.error();
           logger.error(`Error fragmenting glimmer mainframe: ${amount}: ${e}`); 
         }
       });
 
     } 
     catch (e) {
-      this.error();
       logger.error(`Error in fragmentGlimmerMainframe for amount ${amount}: ${e}`);
     }
   }
@@ -434,13 +443,11 @@ export default class Api {
           snapshot.ref.update({ amount: newAmount });
         }
         catch (e) { 
-          this.error();
           logger.error(`Error adding glimmer to bank: ${amount}: ${e}`); 
         }
       });
     }
     catch (e) {
-      this.error();
       logger.error(`Error in addAmountToBank: ${e}`);
     }
   }
@@ -636,7 +643,6 @@ export default class Api {
       });
     }
     catch (e) {
-      this.error();
       logger.error(`Error in rahoolIsADick for ${userId}: ${e}.`);
     }
   }
@@ -888,14 +894,12 @@ export default class Api {
             }
           }
           catch (e) {
-           this.error();
            logger.error(`Error updating light level for user: ${userId}: ${e}`); 
           }
         });
       }
     } 
     catch (e) {
-      this.error();
       logger.error(`Error in updateLightLevel for ${userId}: ${e}.`);
     }
   }
