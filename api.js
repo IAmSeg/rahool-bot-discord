@@ -1455,7 +1455,7 @@ export default class Api {
 
             // battle messages
             this.delayMessage(`You rally together as a fireteam and descend into ${raidName}.`, 4000);
-            this.delayMessage(`After searching for some time, you finally find your prey. Out of the darkness rises **${raidBoss}** at **${enemyLight}** power.`, 8000);
+            this.delayMessage(`After searching for some time, you finally find your prey. Out of the darkness rises **${raidBoss}** at **${enemyLight} power**.`, 8000);
             this.delayMessage(`At your current combined light of **${totalLight}**, you have a **${chanceToWin}%** chance of winning the fight.`, 12000);
             this.delayMessage(`*Let's do this.*`, 15000);
             this.delayMessage(`Bullets fly. Enemies fall. The battle rages on.`, 18000);
