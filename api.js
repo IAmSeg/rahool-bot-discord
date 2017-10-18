@@ -1097,13 +1097,14 @@ export default class Api {
 
           // update the battle log
           let battleLog = {};
+          glimmerWonOrLost = Number(glimmerWonOrLost);
           if (snapshot.val().battleLog)
             battleLog = snapshot.val().battleLog;
           if (battleLog[tier + 1]) {
             if (won)
-              battleLog[tier + 1] = { won: battleLog[tier + 1].won + 1, glimmer: battleLog[tier + 1].glimmer + glimmerWonOrLost };
+              battleLog[tier + 1] = { won: battleLog[tier + 1].won + 1, glimmer: Number(battleLog[tier + 1].glimmer) + glimmerWonOrLost };
             else
-              battleLog[tier + 1] = { loss: battleLog[tier + 1].loss + 1, glimmer: battleLog[tier + 1].glimmer - glimmerWonOrLost };
+              battleLog[tier + 1] = { loss: battleLog[tier + 1].loss + 1, glimmer: Number(battleLog[tier + 1].glimmer) - glimmerWonOrLost };
           }
           else { // no battle log
             if (won)
@@ -1139,6 +1140,14 @@ export default class Api {
         try {
           let message = `Battle log for <@${userId}>: \n`;
           let battleLog = s.val().battleLog;
+          if (!battleLog) {
+            this.bot.sendMessage({
+              to: this.channelId,
+              message: `<@${userId}> you haven't battled yet!`
+            });
+
+            return;
+          }
           let totalGlimmer = 0;
           let totalWins = 0;
           let totalLosses = 0;
