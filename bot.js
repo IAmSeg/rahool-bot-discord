@@ -340,55 +340,53 @@ bot.on('message', function (user, userId, channelId, message, evt) {
     }
 
     // raid protocol
-    if (user.indexOf('Seg') != -1 || user.indexOf('king') != -1) {
-      if (message === '!raid') 
-        api.raid(userId);
+    if (message === '!raid') 
+      api.raid(userId);
 
-      if (message.split(' ')[0] === '!joinraid') {
-        if (message.split(' ').length < 2) {
-          bot.sendMessage({
-            to: channelId,
-            message: `<@${userId}>, please specify a raid id to join. **!joinraid RAID_ID**`
-          });
+    if (message.split(' ')[0] === '!joinraid') {
+      if (message.split(' ').length < 2) {
+        bot.sendMessage({
+          to: channelId,
+          message: `<@${userId}>, please specify a raid id to join. **!joinraid RAID_ID**`
+        });
 
-          return;
-        }
-
-        let raidId = message.split(' ')[1];
-        if (isNaN(raidId)) {
-          bot.sendMessage({
-            to: channelId,
-            message: `<@${userId}>, that is not a valid raid id. **!joinraid RAID_ID**`
-          });
-
-          return;
-        }
-
-        api.joinRaid(userId, raidId);
+        return;
       }
 
-      if (message.split(' ')[0] === '!startraid') {
-        if (message.split(' ').length < 2) {
-          bot.sendMessage({
-            to: channelId,
-            message: `<@${userId}>, please specify a raid id to start. **!startraid RAID_ID**`
-          });
+      let raidId = message.split(' ')[1];
+      if (isNaN(raidId)) {
+        bot.sendMessage({
+          to: channelId,
+          message: `<@${userId}>, that is not a valid raid id. **!joinraid RAID_ID**`
+        });
 
-          return;
-        }
-
-        let raidId = message.split(' ')[1];
-        if (isNaN(raidId)) {
-          bot.sendMessage({
-            to: channelId,
-            message: `<@${userId}>, that is not a valid raid id. **!startraid RAID_ID**`
-          });
-
-          return;
-        }
-
-        api.startRaid(userId, raidId);
+        return;
       }
+
+      api.joinRaid(userId, raidId);
+    }
+
+    if (message.split(' ')[0] === '!startraid') {
+      if (message.split(' ').length < 2) {
+        bot.sendMessage({
+          to: channelId,
+          message: `<@${userId}>, please specify a raid id to start. **!startraid RAID_ID**`
+        });
+
+        return;
+      }
+
+      let raidId = message.split(' ')[1];
+      if (isNaN(raidId)) {
+        bot.sendMessage({
+          to: channelId,
+          message: `<@${userId}>, that is not a valid raid id. **!startraid RAID_ID**`
+        });
+
+        return;
+      }
+
+      api.startRaid(userId, raidId);
     }
 
     if (message === '!aboutfrag') {
