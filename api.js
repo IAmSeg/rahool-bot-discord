@@ -802,9 +802,9 @@ export default class Api {
             let chestName = snapshot.val().itemLightLevels.chestName;
             let legsName = snapshot.val().itemLightLevels.legsName;
             let className = snapshot.val().itemLightLevels.className;
-            let ship = snapshot.val().itemLightLevels.ship;
-            let ghost = snapshot.val().itemLightLevels.ghost;
-            let sparrow = snapshot.val().itemLightLevels.sparrow;
+            let ship = snapshot.val().itemLightLevels.ship || 'None';
+            let ghost = snapshot.val().itemLightLevels.ghost || 'None';
+            let sparrow = snapshot.val().itemLightLevels.sparrow || 'None';
 
             // if we got an energy or kinetic weapon
             if (itemName.indexOf('hand cannon') !== -1 ||
