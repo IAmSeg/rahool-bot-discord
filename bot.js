@@ -27,7 +27,8 @@ var randomGames = [
   'Rubbing Ikora\'s head',
   'Polishing Zavala\'s armor',
   'Stealing Cayde\'s cloak',
-  'Thinking of Petra',
+  'Jerking to Petra',
+  'Going down on Amanda',
   'Dismantling shaders',
   'Teabagging Tyra Karn'
 ];
