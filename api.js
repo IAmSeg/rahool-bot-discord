@@ -698,14 +698,23 @@ export default class Api {
             if (snapshot.val().glimmer < 100) {
               this.bot.sendMessage({
                 to: this.channelId,
-                message: `I'm sorry. You don't have enough glimmer to buy an engram. Engrams cost **100** glimmer. You have **${snapshot.val().glimmer}** glimmer.`
+                message: `I'm sorry <@${userId}>. You don't have enough glimmer to buy an engram. Engrams cost **100** glimmer. You have **${snapshot.val().glimmer}** glimmer.`
+              });
+
+              return;
+            }
+
+            if (utilities.minutesSince(snapshot.val().engramCooldown) < .5) {
+              this.bot.sendMessage({
+                to: this.channelId,
+                message: `<@${userId}>, Rahool can only decrypt engrams so fast.`
               });
 
               return;
             }
 
             // remove 100 from the user and add it to the bank
-            snapshot.ref.update({ glimmer: snapshot.val().glimmer - 100 });
+            snapshot.ref.update({ glimmer: snapshot.val().glimmer - 100, engramCooldown: moment().unix() });
             this.addAmountToBank(100);
 
             let currentLight = lightLevelConfig.calculateLightLevel(snapshot.val())
