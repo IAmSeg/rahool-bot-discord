@@ -548,7 +548,7 @@ export default class Api {
             this.takeGlimmerFromUser(userId, Math.abs(fineAmount));
             this.bot.sendMessage({
               to: this.channelId,
-              message: `Sorry <@${userId}>, the glimmer police caught you trying to rob the bank and fined you **${fineAmount}* glimmer. The secret vault code was **${secret}**. The secret vault code has been changed due to the recent robbery attempt.`
+              message: `Sorry <@${userId}>, the glimmer police caught you trying to rob the bank and fined you **${fineAmount}** glimmer. The secret vault code was **${secret}**. The secret vault code has been changed due to the recent robbery attempt.`
             });
           }
         }
