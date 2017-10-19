@@ -83,7 +83,10 @@ export default class Api {
           energyLight: 0,
           energyName: 'unknown',
           powerLight: 0,
-          powerName: 'unknown'
+          powerName: 'unknown',
+          ghost: 'unknown',
+          ship: 'unknown',
+          sparrow: 'unknown'
         }
       });
     }
@@ -588,6 +591,9 @@ export default class Api {
             `Chest Armor: ${snapshot.val().itemLightLevels.chestName} (${snapshot.val().itemLightLevels.chestLight})\n` +
             `Leg Armor: ${snapshot.val().itemLightLevels.legsName} (${snapshot.val().itemLightLevels.legsLight})\n` +
             `Class Item: ${snapshot.val().itemLightLevels.className} (${snapshot.val().itemLightLevels.classLight})\n` +
+            `Sparrow: ${snapshot.val().itemLightLevels.sparrow}\n` +
+            `Ghost: ${snapshot.val().itemLightLevels.ghost}\n` +
+            `Ship: ${snapshot.val().itemLightLevels.ship}\n` +
             `Total Light: **${lightLevelConfig.calculateLightLevel(snapshot.val())}**`;
 
           this.bot.sendMessage({
@@ -774,151 +780,137 @@ export default class Api {
       let itemName = selectedItem.name.toLowerCase();
       let itemHasLight = false;
 
-      // a list of all possible items that have light. ships, sparrows, ghosts don't.
-      [
-        'hunter cloak',
-        'titan mark',
-        'warlock bond',
-        'helmet',
-        'gauntlets',
-        'chest armor',
-        'leg armor',
-        'auto rifle',
-        'pulse rifle',
-        'hand cannon',
-        'scout rifle',
-        'sidearm',
-        'sniper rifle',
-        'sword',
-        'rocket launcher',
-        'fusion rifle',
-        'submachine gun',
-        'grenade launcher',
-        'shotgun'
-      ].forEach(item => {
-        if (selectedItem.name.toLowerCase().indexOf(item) !== -1)
-          itemHasLight = true;
-      });
+     
+      const user = this.database.ref(`users/${userId}`);
+      user.once('value', snapshot => {
+        try {
+          if (snapshot.val()) {
+            // current light items
+            let kineticLight = snapshot.val().itemLightLevels.kineticLight;
+            let energyLight = snapshot.val().itemLightLevels.energyLight;
+            let powerLight = snapshot.val().itemLightLevels.powerLight;
+            let helmetLight = snapshot.val().itemLightLevels.helmetLight;
+            let gauntletsLight = snapshot.val().itemLightLevels.gauntletsLight;
+            let chestLight = snapshot.val().itemLightLevels.chestLight;
+            let legsLight = snapshot.val().itemLightLevels.legsLight;
+            let classLight = snapshot.val().itemLightLevels.classLight;
+            let kineticName = snapshot.val().itemLightLevels.kineticName;
+            let energyName = snapshot.val().itemLightLevels.energyName;
+            let powerName = snapshot.val().itemLightLevels.powerName;
+            let helmetName = snapshot.val().itemLightLevels.helmetName;
+            let gauntletsName = snapshot.val().itemLightLevels.gauntletsName;
+            let chestName = snapshot.val().itemLightLevels.chestName;
+            let legsName = snapshot.val().itemLightLevels.legsName;
+            let className = snapshot.val().itemLightLevels.className;
+            let ship = snapshot.val().itemLightLevels.ship;
+            let ghost = snapshot.val().itemLightLevels.ghost;
+            let sparrow = snapshot.val().itemLightLevels.sparrow;
 
-      if (itemHasLight) {
-        const user = this.database.ref(`users/${userId}`);
-        user.once('value', snapshot => {
-          try {
-            if (snapshot.val()) {
-              // current light items
-              let kineticLight = snapshot.val().itemLightLevels.kineticLight;
-              let energyLight = snapshot.val().itemLightLevels.energyLight;
-              let powerLight = snapshot.val().itemLightLevels.powerLight;
-              let helmetLight = snapshot.val().itemLightLevels.helmetLight;
-              let gauntletsLight = snapshot.val().itemLightLevels.gauntletsLight;
-              let chestLight = snapshot.val().itemLightLevels.chestLight;
-              let legsLight = snapshot.val().itemLightLevels.legsLight;
-              let classLight = snapshot.val().itemLightLevels.classLight;
-              let kineticName = snapshot.val().itemLightLevels.kineticName;
-              let energyName = snapshot.val().itemLightLevels.energyName;
-              let powerName = snapshot.val().itemLightLevels.powerName;
-              let helmetName = snapshot.val().itemLightLevels.helmetName;
-              let gauntletsName = snapshot.val().itemLightLevels.gauntletsName;
-              let chestName = snapshot.val().itemLightLevels.chestName;
-              let legsName = snapshot.val().itemLightLevels.legsName;
-              let className = snapshot.val().itemLightLevels.className;
-
-              // if we got an energy or kinetic weapon
-              if (itemName.indexOf('hand cannon') !== -1 ||
-                  itemName.indexOf('auto rifle') !== -1 ||
-                  itemName.indexOf('scout rifle') !== -1 ||
-                  itemName.indexOf('pulse rifle') !== -1 ||
-                  itemName.indexOf('sidearm') !== -1) {
-                    if (engramLightLevel > Math.min(kineticLight, energyLight)) {
-                       let weaponToSet = kineticLight < energyLight ? 'kinetic' : 'energy';
-                       if (weaponToSet == 'kinetic') {
-                         kineticLight = engramLightLevel;
-                         kineticName = selectedItem.name;
-                       }
-                       else {
-                         energyLight = engramLightLevel;
-                         energyName = selectedItem.name;
-                       }
-                    }
-              }
-              // if we got a power weapon
-              if (itemName.indexOf('sniper rifle') !== -1 ||
-                  itemName.indexOf('fusion rifle') !== -1 ||
-                  itemName.indexOf('rocket launcher') !== -1 ||
-                  itemName.indexOf('grenade launcher') !== -1 ||
-                  itemName.indexOf('grenade launcher') !== -1 ||
-                  itemName.indexOf('shotgun') !== -1) {
-                    if (engramLightLevel > powerLight) {
-                      powerLight = engramLightLevel;
-                      powerName = selectedItem.name;
-                    }
-
-              }
-              // if we got a helmet
-              if (itemName.indexOf('helmet') !== -1) {
-                if (engramLightLevel > helmetLight) {
-                  helmetLight = engramLightLevel;
-                  helmetName = selectedItem.name;
-                }
-              }
-              // if we got a chest piece
-              if (itemName.indexOf('chest armor') !== -1) {
-                if (engramLightLevel > chestLight) {
-                  chestLight = engramLightLevel;
-                  chestName = selectedItem.name;
-                }
-              }
-              // if we got gauntlets
-              if (itemName.indexOf('gauntlets') !== -1) {
-                if (engramLightLevel > gauntletsLight) {
-                  gauntletsLight = engramLightLevel;
-                  gauntletsName = selectedItem.name;
-                }
-              }
-              // if we got legs
-              if (itemName.indexOf('leg armor') !== -1) {
-                if (engramLightLevel > legsLight) {
-                  legsLight = engramLightLevel;
-                  legsName = selectedItem.name;
-                }
-              }
-              // if we got a class item
-              if (itemName.indexOf('hunter cloak') !== -1 ||
-                  itemName.indexOf('titan mark') !== -1 ||
-                  itemName.indexOf('warlock bond') !== -1) {
-                if (engramLightLevel > classLight) {
-                  classLight = engramLightLevel;
-                  className = selectedItem.name;
-                }
-              }
-
-              // object to represent users new light levels and loadouts
-              let itemLightLevels = {
-                helmetLight,
-                chestLight,
-                gauntletsLight,
-                legsLight,
-                classLight,
-                kineticLight,
-                energyLight,
-                powerLight,
-                kineticName,
-                energyName,
-                powerName,
-                helmetName,
-                gauntletsName,
-                chestName,
-                legsName,
-                className
-              };
-              snapshot.ref.update({ itemLightLevels });
+            // if we got an energy or kinetic weapon
+            if (itemName.indexOf('hand cannon') !== -1 ||
+                itemName.indexOf('auto rifle') !== -1 ||
+                itemName.indexOf('scout rifle') !== -1 ||
+                itemName.indexOf('pulse rifle') !== -1 ||
+                itemName.indexOf('sidearm') !== -1) {
+                  if (engramLightLevel > Math.min(kineticLight, energyLight)) {
+                     let weaponToSet = kineticLight < energyLight ? 'kinetic' : 'energy';
+                     if (weaponToSet == 'kinetic') {
+                       kineticLight = engramLightLevel;
+                       kineticName = selectedItem.name;
+                     }
+                     else {
+                       energyLight = engramLightLevel;
+                       energyName = selectedItem.name;
+                     }
+                  }
             }
+            // if we got a power weapon
+            if (itemName.indexOf('sniper rifle') !== -1 ||
+                itemName.indexOf('fusion rifle') !== -1 ||
+                itemName.indexOf('rocket launcher') !== -1 ||
+                itemName.indexOf('grenade launcher') !== -1 ||
+                itemName.indexOf('grenade launcher') !== -1 ||
+                itemName.indexOf('shotgun') !== -1) {
+                  if (engramLightLevel > powerLight) {
+                    powerLight = engramLightLevel;
+                    powerName = selectedItem.name;
+                  }
+
+            }
+            // if we got a helmet
+            if (itemName.indexOf('helmet') !== -1) {
+              if (engramLightLevel > helmetLight) {
+                helmetLight = engramLightLevel;
+                helmetName = selectedItem.name;
+              }
+            }
+            // if we got a chest piece
+            if (itemName.indexOf('chest armor') !== -1) {
+              if (engramLightLevel > chestLight) {
+                chestLight = engramLightLevel;
+                chestName = selectedItem.name;
+              }
+            }
+            // if we got gauntlets
+            if (itemName.indexOf('gauntlets') !== -1) {
+              if (engramLightLevel > gauntletsLight) {
+                gauntletsLight = engramLightLevel;
+                gauntletsName = selectedItem.name;
+              }
+            }
+            // if we got legs
+            if (itemName.indexOf('leg armor') !== -1) {
+              if (engramLightLevel > legsLight) {
+                legsLight = engramLightLevel;
+                legsName = selectedItem.name;
+              }
+            }
+            // if we got a class item
+            if (itemName.indexOf('hunter cloak') !== -1 ||
+                itemName.indexOf('titan mark') !== -1 ||
+                itemName.indexOf('warlock bond') !== -1) {
+              if (engramLightLevel > classLight) {
+                classLight = engramLightLevel;
+                className = selectedItem.name;
+              }
+            }
+
+            if (itemName.indexOf('vehicle') !== -1) 
+              sparrow = itemName;
+            if (itemName.indexOf('ghost') !== -1) 
+              ghost = itemName;
+            if (itemName.indexOf('ship') !== -1) 
+              ship = itemName;
+
+            // object to represent users new light levels and loadouts
+            let itemLightLevels = {
+              helmetLight,
+              chestLight,
+              gauntletsLight,
+              legsLight,
+              classLight,
+              kineticLight,
+              energyLight,
+              powerLight,
+              kineticName,
+              energyName,
+              powerName,
+              helmetName,
+              gauntletsName,
+              chestName,
+              legsName,
+              className,
+              sparrow,
+              ghost,
+              ship
+            };
+            snapshot.ref.update({ itemLightLevels });
           }
-          catch (e) {
-           logger.error(`Error updating light level for user: ${userId}: ${e}`); 
-          }
-        });
-      }
+        }
+        catch (e) {
+         logger.error(`Error updating light level for user: ${userId}: ${e}`); 
+        }
+      });
     } 
     catch (e) {
       logger.error(`Error in updateLightLevel for ${userId}: ${e}.`);
