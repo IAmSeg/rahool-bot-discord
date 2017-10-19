@@ -454,7 +454,7 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       message += `**!battle ENEMY_TIER** - Battles an enemy in your selected tier (1-8).\n`;
       message += `**!battlecooldown** - Check your current battle cooldown time.\n`;
       message += `**!battlelog** - Check your total battle wins/losses/glimmer.\n`;
-      message += `**!raid** - Iniate the raid protocol.\n`;
+      message += `**!raid** - Iniate the raid protocol. You will be given a unique raid id. Gaurdians will have 60 seconds to join your raid.\n`;
       message += `**!joinraid RAID_ID** - Join a raid with id RAID_ID.\n`;
       message += `**!startraid RAID_ID** - Start a raid with id RAID_ID.\n`;
       message += `**!raidparty RAID_ID** - Check the gaurdian count/combined light for a raid with id RAID_ID.\n`;
