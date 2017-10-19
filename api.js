@@ -591,9 +591,9 @@ export default class Api {
             `Chest Armor: ${snapshot.val().itemLightLevels.chestName} (${snapshot.val().itemLightLevels.chestLight})\n` +
             `Leg Armor: ${snapshot.val().itemLightLevels.legsName} (${snapshot.val().itemLightLevels.legsLight})\n` +
             `Class Item: ${snapshot.val().itemLightLevels.className} (${snapshot.val().itemLightLevels.classLight})\n` +
-            `Sparrow: ${snapshot.val().itemLightLevels.sparrow}\n` +
-            `Ghost: ${snapshot.val().itemLightLevels.ghost}\n` +
-            `Ship: ${snapshot.val().itemLightLevels.ship}\n` +
+            `Sparrow: ${snapshot.val().itemLightLevels.sparrow || 'None'}\n` +
+            `Ghost: ${snapshot.val().itemLightLevels.ghost || 'None'}\n` +
+            `Ship: ${snapshot.val().itemLightLevels.ship || 'None'}\n` +
             `Total Light: **${lightLevelConfig.calculateLightLevel(snapshot.val())}**`;
 
           this.bot.sendMessage({
