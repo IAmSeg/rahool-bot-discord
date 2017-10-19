@@ -436,6 +436,18 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       });
     }
 
+    if (message === '!howtoraid') {
+      let message = `Type !raid to initiate the raid protocol.\n`;
+      message += `You will be given a unique raid id to identify your raid.\n`;
+      message += `Gaurdians will have 60 seconds to join your raid with your unique raid id. Type **!joinraid RAID_ID** to join.`
+      message += `After 60 seconds, no more gaurdians may join your raid. You can type **!raidparty RAID_ID** to see how many gaurdians joined your raid and your combined light level.\n`;
+      message += `When you are ready, type **!startraid RAID_ID** to begin the raid.`;
+      bot.sendMessage({
+        to: channelId,
+        message
+      });
+    }
+
     // list all commands
     if (message === '!commands') {
       let message = `Current available commands: \n`;
@@ -454,6 +466,7 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       message += `**!battle ENEMY_TIER** - Battles an enemy in your selected tier (1-8).\n`;
       message += `**!battlecooldown** - Check your current battle cooldown time.\n`;
       message += `**!battlelog** - Check your total battle wins/losses/glimmer.\n`;
+      message += `**!howtoraid** - More information on how to raid.\n`;
       message += `**!raid** - Iniate the raid protocol. You will be given a unique raid id. Gaurdians will have 60 seconds to join your raid.\n`;
       message += `**!joinraid RAID_ID** - Join a raid with id RAID_ID.\n`;
       message += `**!startraid RAID_ID** - Start a raid with id RAID_ID.\n`;
