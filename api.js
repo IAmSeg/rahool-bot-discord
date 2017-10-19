@@ -526,7 +526,7 @@ export default class Api {
 
                 this.bot.sendMessage({
                   to: this.channelId,
-                  message: `Congratulations <@${userId}>! You guessed the secret number and successfully robbed the Global Glimmer Bank of **${amount}** glimmer!`
+                  message: `Congratulations <@${userId}>! You cracked the secret vault code and successfully robbed the Global Glimmer Bank of **${amount}** glimmer!`
                 });
 
                 this.addGlimmerToUser(userId, amount);
@@ -548,7 +548,7 @@ export default class Api {
             this.takeGlimmerFromUser(userId, Math.abs(fineAmount));
             this.bot.sendMessage({
               to: this.channelId,
-              message: `Sorry <@${userId}>, you were caught trying to rob the bank with a failed robbery attempt. The secret number was **${secret}**. You've been fined **${fineAmount}** glimmer by the glimmer police.`
+              message: `Sorry <@${userId}>, the glimmer police caught you trying to rob the bank and fined you **${fineAmount}* glimmer. The secret vault code was **${secret}**. The secret vault code has been changed due to the recent robbery attempt.`
             });
           }
         }
@@ -622,7 +622,9 @@ export default class Api {
           userList.sort((a, b) => lightLevelConfig.calculateLightLevel(b) - lightLevelConfig.calculateLightLevel(a));
 
           userList.forEach((user, i) => {
-            message += `${i + 1}: ${user.username}, light: ${lightLevelConfig.calculateLightLevel(user)}\n`; 
+            let light = lightLevelConfig.calculateLightLevel(user);
+            if (light > 0)
+              message += `${i + 1}: ${user.username}, light: ${light}\n`; 
           });
 
           this.bot.sendMessage({
