@@ -437,9 +437,9 @@ bot.on('message', function (user, userId, channelId, message, evt) {
     }
 
     if (message === '!howtoraid') {
-      let message = `Type !raid to initiate the raid protocol.\n`;
+      let message = `Type **!raid** to initiate the raid protocol.\n`;
       message += `You will be given a unique raid id to identify your raid.\n`;
-      message += `Gaurdians will have 60 seconds to join your raid with your unique raid id. Type **!joinraid RAID_ID** to join.`
+      message += `Gaurdians will have 60 seconds to join your raid with your unique raid id. Type **!joinraid RAID_ID** to join.\n`
       message += `After 60 seconds, no more gaurdians may join your raid. You can type **!raidparty RAID_ID** to see how many gaurdians joined your raid and your combined light level.\n`;
       message += `When you are ready, type **!startraid RAID_ID** to begin the raid.`;
       bot.sendMessage({
