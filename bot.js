@@ -424,8 +424,8 @@ bot.on('message', function (user, userId, channelId, message, evt) {
 
     if (message === '!glimmereconomy') {
       let message = `Glimmer is a programmable currency which is kept track of in the Glimmer Mainframe (like a ledger to a crypto currency). Each time you type a message of at least a certain length, you "mine" or "farm" glimmer and it is distributed by the Glimmer Mainframe.\n`;
-      message += `Half of the farmed glimmer goes to you, half goes to the Global Glimmer Bank.\n`
-      message += `The Global Glimmer Bank helps you with transactions and keeps track of loans/debts/collections/repayments. It will also pay you for certain endeavors, such as eliminating threats to our people by winning battles.\n`
+      message += `Half of the farmed glimmer goes to you, half goes to the Global Glimmer Bank.\n`;
+      message += `The Global Glimmer Bank helps you with transactions and keeps track of loans/debts/collections/repayments. It will also pay you for certain endeavors, such as eliminating threats to our people by winning battles.\n`;
       message += `Glimmer can be used to buy engrams, loaned, gambled, or donated to the Glimmer Mainframe to help with defragmentation repairs.\n`;
       message += `With each glimmer transaction, the Glimmer Mainframe becomes slightly more fragmented, based on the amount of glimmer being transacted. If the Mainframe hits 100% fragmentation, the economy will collapse and all glimmer will be lost.\n`;
       message += `The only way to generate new glimmer is to farm it, or to win it from gambling (gambling is an advanced mining/farming protocol that can generate glimmer extremely fast).\n`;
@@ -439,7 +439,7 @@ bot.on('message', function (user, userId, channelId, message, evt) {
     if (message === '!howtoraid') {
       let message = `Type **!raid** to initiate the raid protocol.\n`;
       message += `You will be given a unique raid id to identify your raid.\n`;
-      message += `Gaurdians will have 60 seconds to join your raid with your unique raid id. Type **!joinraid RAID_ID** to join.\n`
+      message += `Gaurdians will have 60 seconds to join your raid with your unique raid id. Type **!joinraid RAID_ID** to join.\n`;
       message += `After 60 seconds, no more gaurdians may join your raid. You can type **!raidparty RAID_ID** to see how many gaurdians joined your raid and your combined light level.\n`;
       message += `When you are ready, type **!startraid RAID_ID** to begin the raid.`;
       bot.sendMessage({
@@ -466,24 +466,30 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       message += `**!battle ENEMY_TIER** - Battles an enemy in your selected tier (1-8).\n`;
       message += `**!battlecooldown** - Check your current battle cooldown time.\n`;
       message += `**!battlelog** - Check your total battle wins/losses/glimmer.\n`;
-      message += `**!howtoraid** - More information on how to raid.\n`;
-      message += `**!raid** - Iniate the raid protocol. You will be given a unique raid id. Gaurdians will have 60 seconds to join your raid.\n`;
-      message += `**!joinraid RAID_ID** - Join a raid with id RAID_ID.\n`;
-      message += `**!startraid RAID_ID** - Start a raid with id RAID_ID.\n`;
-      message += `**!raidparty RAID_ID** - Check the gaurdian count/combined light for a raid with id RAID_ID.\n`;
-      message += `**!loan AMOUNT @user** - Loan AMOUNT glimmer to a user.\n`;
-      message += `**!collect AMOUNT @user** - Collect a loan of AMOUNT glimmer from @user who you have loaned to.\n`;
-      message += `**!repay AMOUNT @user** - Repay a loan of AMOUNT glimmer to @user who has loaned glimmer to you.\n`;
-      message += `**!loans** - Check the amount of glimmer you have loaned out.\n`;
-      message += `**!debt** - Check how much glimmer you are in debt (how much you have been loaned).\n`;
-      message += `**!loansystem** - More information about how the loan/repay/collect system works.\n`;
-      message += `**!frag** - Check the current Glimmer Mainframe fragmentation rate.\n`;
-      message += `**!defrag AMOUNT** - Donate AMOUNT glimmer to defragmentation repairs of the Glimmer Mainframe.\n`;
-      message += `**!aboutfrag** - More information about how the Glimmer Mainframe fragmentation works.\n`;
 
       bot.sendMessage({
         to: channelId,
         message
+      });
+
+      let newmessage = `**!howtoraid** - More information on how to raid.\n`;
+      newmessage += `**!raid** - Iniate the raid protocol. You will be given a unique raid id. Gaurdians will have 60 seconds to join your raid.\n`;
+      newmessage += `**!joinraid RAID_ID** - Join a raid with id RAID_ID.\n`;
+      newmessage += `**!startraid RAID_ID** - Start a raid with id RAID_ID.\n`;
+      newmessage += `**!raidparty RAID_ID** - Check the gaurdian count/combined light for a raid with id RAID_ID.\n`;
+      newmessage += `**!loan AMOUNT @user** - Loan AMOUNT glimmer to a user.\n`;
+      newmessage += `**!collect AMOUNT @user** - Collect a loan of AMOUNT glimmer from @user who you have loaned to.\n`;
+      newmessage += `**!repay AMOUNT @user** - Repay a loan of AMOUNT glimmer to @user who has loaned glimmer to you.\n`;
+      newmessage += `**!loans** - Check the amount of glimmer you have loaned out.\n`;
+      newmessage += `**!debt** - Check how much glimmer you are in debt (how much you have been loaned).\n`;
+      newmessage += `**!loansystem** - More information about how the loan/repay/collect system works.\n`;
+      newqmessage += `**!frag** - Check the current Glimmer Mainframe fragmentation rate.\n`;
+      newmessage += `**!defrag AMOUNT** - Donate AMOUNT glimmer to defragmentation repairs of the Glimmer Mainframe.\n`;
+      newmessage += `**!aboutfrag** - More information about how the Glimmer Mainframe fragmentation works.\n`;
+
+      bot.sendMessage({
+        to: channelId,
+        message: newMessage
       });
     }
   }

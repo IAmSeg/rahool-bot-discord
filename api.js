@@ -1268,7 +1268,7 @@ export default class Api {
         }
 
         snapshot.ref.update({ battleLog, glimmer: snapshot.val().glimmer + (won ? Number(glimmer) : Number(0 - glimmer)) });
-        this.fragmentGlimmerMainframe(glimmer);
+        this.fragmentGlimmerMainframe(glimmer || 0);
       }
       catch (e) {
         logger.error(`Error updating battle log for user ${userId} tier ${tier}: ${e}`);
