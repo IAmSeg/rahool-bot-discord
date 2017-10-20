@@ -99,7 +99,6 @@ export default class Api {
   // @param userId - user to give glimmer to
   // @param amount
   addGlimmerToUser(userId, amount) {
-    this.fragmentGlimmerMainframe(amount);
     const user = this.database.ref(`users/${userId}`);
     user.once('value', snapshot => {
       try {
@@ -116,7 +115,6 @@ export default class Api {
   // @param userId - user to take glimmer from
   // @param amount
   takeGlimmerFromUser(userId, amount) {
-    this.fragmentGlimmerMainframe(amount);
     const user = this.database.ref(`users/${userId}`);
     user.once('value', snapshot => {
       try {
@@ -696,7 +694,6 @@ export default class Api {
   // @param userId - calling user
   getEngram(userId) {
     try {
-      this.fragmentGlimmerMainframe(100);
       const user = this.database.ref(`users/${userId}`);
       user.once('value', snapshot => {
         try {
@@ -1268,7 +1265,6 @@ export default class Api {
         }
 
         snapshot.ref.update({ battleLog, glimmer: snapshot.val().glimmer + (won ? Number(glimmer) : Number(0 - glimmer)) });
-        this.fragmentGlimmerMainframe(glimmer || 0);
       }
       catch (e) {
         logger.error(`Error updating battle log for user ${userId} tier ${tier}: ${e}`);
@@ -1491,8 +1487,10 @@ export default class Api {
 
             // update the battle logs
             s.val().users.forEach(user => {
-              if (won)
+              if (won) {
                 this.updateBattleLog(user.id, 9, true, glimmerShare); 
+                this.fragmentGlimmerMainframe(glimmerShare);
+              }
               else {
                 this.updateBattleLog(user.id, 9, false, 0);
                 this.removeLightFromUser(user.id, lightReduction);
