@@ -876,11 +876,11 @@ export default class Api {
             }
 
             if (itemName.indexOf('vehicle') !== -1) 
-              sparrow = itemName;
+              sparrow = selectedItem.name;
             if (itemName.indexOf('ghost') !== -1) 
-              ghost = itemName;
+              ghost = selectedItem.name;
             if (itemName.indexOf('ship') !== -1) 
-              ship = itemName;
+              ship = selectedItem.name;
 
             // object to represent users new light levels and loadouts
             let itemLightLevels = {
