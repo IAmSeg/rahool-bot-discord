@@ -220,7 +220,7 @@ export default {
     if (tier === 9) {
       return Math.floor(utilities.randomNumberBetween(this.raidGlimmerConfig.min, this.raidGlimmerConfig.max / 8) * (1 + (chanceToWin / 100)));
     }
-    return Math.floor(utilities.randomNumberBetween(this.enemyGlimmerConfig[tier].min, this.enemyGlimmerConfig[tier].max / 3) * (1 + (chanceToWin / 100)));
+    return Math.floor(utilities.randomNumberBetween(this.enemyGlimmerConfig[tier].min, this.enemyGlimmerConfig[tier].max / 5) * (1 + (chanceToWin / 100)));
   },
 
   battleStartMessages: [
