@@ -489,7 +489,7 @@ bot.on('message', function (user, userId, channelId, message, evt) {
 
       bot.sendMessage({
         to: channelId,
-        message: newMessage
+        message: newmessage
       });
     }
   }
