@@ -808,6 +808,7 @@ export default class Api {
                 itemName.indexOf('auto rifle') !== -1 ||
                 itemName.indexOf('scout rifle') !== -1 ||
                 itemName.indexOf('pulse rifle') !== -1 ||
+                itemName.indexOf('submachine') !== -1 ||
                 itemName.indexOf('sidearm') !== -1) {
                   if (engramLightLevel > Math.min(kineticLight, energyLight)) {
                      let weaponToSet = kineticLight < energyLight ? 'kinetic' : 'energy';
