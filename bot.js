@@ -487,10 +487,12 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       newmessage += `**!defrag AMOUNT** - Donate AMOUNT glimmer to defragmentation repairs of the Glimmer Mainframe.\n`;
       newmessage += `**!aboutfrag** - More information about how the Glimmer Mainframe fragmentation works.\n`;
 
-      bot.sendMessage({
-        to: channelId,
-        message: newmessage
-      });
+      setTimeout(() => {
+        bot.sendMessage({
+          to: channelId,
+          message: newmessage
+        });
+      }, 1);
     }
   }
   catch (e) {
