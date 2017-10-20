@@ -483,7 +483,7 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       newmessage += `**!loans** - Check the amount of glimmer you have loaned out.\n`;
       newmessage += `**!debt** - Check how much glimmer you are in debt (how much you have been loaned).\n`;
       newmessage += `**!loansystem** - More information about how the loan/repay/collect system works.\n`;
-      newqmessage += `**!frag** - Check the current Glimmer Mainframe fragmentation rate.\n`;
+      newmessage += `**!frag** - Check the current Glimmer Mainframe fragmentation rate.\n`;
       newmessage += `**!defrag AMOUNT** - Donate AMOUNT glimmer to defragmentation repairs of the Glimmer Mainframe.\n`;
       newmessage += `**!aboutfrag** - More information about how the Glimmer Mainframe fragmentation works.\n`;
 
