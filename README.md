@@ -6,8 +6,6 @@ Simulates the Cryptarch Rahool from the game Destiny.
 The bot allows users to buy engrams that decrypt into real Destiny items, such as armor, weapons, ships, and ghosts. The user data such as glimmer count,
 full loadout of weapons and armor are kept track of by the bot. The user data is stored in a firebase database and written to/read from in real time. The items that decrypt from engrams
 are also stored in a firebase database, and are loaded from a python script that fetches the Destiny Manifest through the Bungie API.
-The code for the armory database generation is not open source due to the API keys in it for the Bungie API, but feel free to ask for it
-if you'd like to run it yourself with your own API keys.
 
 ### Current functionality
 
