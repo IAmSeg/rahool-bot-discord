@@ -533,6 +533,7 @@ export default class Api {
                 this.addGlimmerToUser(userId, amount);
 
                 this.fragmentGlimmerMainframe(amount);
+                bankRef.update({ amount: 0 });
               }
               catch (e) { 
                 this.error(`I'm sorry. Something went wrong with the !robbank command. Hold off until someone can fix it.`);
