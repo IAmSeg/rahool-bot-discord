@@ -439,8 +439,8 @@ bot.on('message', function (user, userId, channelId, message, evt) {
     if (message === '!howtoraid') {
       let message = `Type **!raid** to initiate the raid protocol.\n`;
       message += `You will be given a unique raid id to identify your raid.\n`;
-      message += `Gaurdians will have 60 seconds to join your raid with your unique raid id. Type **!joinraid RAID_ID** to join.\n`;
-      message += `After 60 seconds, no more gaurdians may join your raid. You can type **!raidparty RAID_ID** to see how many gaurdians joined your raid and your combined light level.\n`;
+      message += `Guardians will have 60 seconds to join your raid with your unique raid id. Type **!joinraid RAID_ID** to join.\n`;
+      message += `After 60 seconds, no more guardians may join your raid. You can type **!raidparty RAID_ID** to see how many gaurdians joined your raid and your combined light level.\n`;
       message += `When you are ready, type **!startraid RAID_ID** to begin the raid.`;
       bot.sendMessage({
         to: channelId,
@@ -473,10 +473,10 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       });
 
       let newmessage = `**!howtoraid** - More information on how to raid.\n`;
-      newmessage += `**!raid** - Iniate the raid protocol. You will be given a unique raid id. Gaurdians will have 60 seconds to join your raid.\n`;
+      newmessage += `**!raid** - Iniate the raid protocol. You will be given a unique raid id. Guardians will have 60 seconds to join your raid.\n`;
       newmessage += `**!joinraid RAID_ID** - Join a raid with id RAID_ID.\n`;
       newmessage += `**!startraid RAID_ID** - Start a raid with id RAID_ID.\n`;
-      newmessage += `**!raidparty RAID_ID** - Check the gaurdian count/combined light for a raid with id RAID_ID.\n`;
+      newmessage += `**!raidparty RAID_ID** - Check the guardian count/combined light for a raid with id RAID_ID.\n`;
       newmessage += `**!loan AMOUNT @user** - Loan AMOUNT glimmer to a user.\n`;
       newmessage += `**!collect AMOUNT @user** - Collect a loan of AMOUNT glimmer from @user who you have loaned to.\n`;
       newmessage += `**!repay AMOUNT @user** - Repay a loan of AMOUNT glimmer to @user who has loaned glimmer to you.\n`;
