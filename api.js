@@ -1310,7 +1310,7 @@ export default class Api {
                 time: moment().unix()
               }, () => {
                 let message = `<@${userId}> you have initiated the raid protocol. Your raid ID is **${raidId}**.\n`
-                message += `Gaurdians have 60 seconds to join your raid.`;
+                message += `Guardians have 60 seconds to join your raid.`;
                 message += `Type **!joinraid ${raidId}** to join.\n`;
                 message += `In 60 seconds, you may type **!startraid ${raidId}** to begin the raid.`;
 
@@ -1481,7 +1481,7 @@ export default class Api {
             }
             // we lost 
             else {
-              this.delayMessage(`*Gaurdian down...*`, 28000);
+              this.delayMessage(`*Guardian down...*`, 28000);
               let defeatMessage = selectedRaidObj.defeatMessage;
               this.delayMessage(`${userList}\nAfter a tough battle, you are defeated by **${raidBoss}**. ${defeatMessage}.`, 31000);
               this.delayMessage(`Your light has been reduced by **${lightReduction}** by your enemies.`, 32000);
@@ -1521,7 +1521,7 @@ export default class Api {
     }
   }
 
-  // @summary - checks the gaurdian count and total light for a raid
+  // @summary - checks the guardian count and total light for a raid
   // @userId - calling user
   // @raidId - raid to check party for
   raidParty(userId, raidId) {
@@ -1534,7 +1534,7 @@ export default class Api {
 
           this.bot.sendMessage({
             to: this.channelId,
-            message: `Raiding party for raid ${raidId}:\nGaurdian Count: **${raidCount}**\nCombined Light: **${totalLight}**`
+            message: `Raiding party for raid ${raidId}:\nGuardian Count: **${raidCount}**\nCombined Light: **${totalLight}**`
           });
         }
         else {
