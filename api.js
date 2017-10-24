@@ -1777,6 +1777,7 @@ export default class Api {
                 // bank takes its share
                 let bankShare = Math.floor((amount * .2) > 1 ? (amount * .2) : 1);
                 let collectedAmount = amount - bankShare;
+                this.fragmentGlimmerMainframe(amount - bankShare);
                 this.addAmountToBank(bankShare);
 
                 // update the users loans
@@ -1876,6 +1877,7 @@ export default class Api {
 
 
                 // repay the user
+                this.fragmentGlimmerMainframe(amount);
                 this.addGlimmerToUser(repayToId, amount + interest);
                 this.bot.sendMessage({
                   to: this.channelId,
