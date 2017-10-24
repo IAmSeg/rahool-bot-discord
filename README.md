@@ -26,7 +26,7 @@ are also stored in a firebase database, and are loaded from a python script that
 * **!battlelog** - Check your total battle wins/losses/glimmer
 * **!joinraid RAID_ID** - Join a raid with id RAID_ID
 * **!startraid RAID_ID** - Start a raid with id RAID_ID
-* **!raidparty RAID_ID** - Check the gaurdian count/combined light for a raid with id RAID_ID
+* **!raidparty RAID_ID** - Check the guardian count/combined light for a raid with id RAID_ID
 * **!loan AMOUNT @user** - Loan AMOUNT glimmer to a user
 * **!collect AMOUNT @user** - Collect a loan of AMOUNT glimmer from @user who you have loaned to
 * **!repay AMOUNT @user** - Repay a loan of AMOUNT glimmer to @user who has loaned glimmer to you
