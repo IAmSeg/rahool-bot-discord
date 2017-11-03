@@ -964,7 +964,10 @@ export default class Api {
             gauntletsName,
             chestName,
             legsName,
-            className
+            className,
+            ship: snapshot.val().ship,
+            ghost: snapshot.val().ghost,
+            sparrow: snapshot.val().sparrow
           };
           snapshot.ref.update({ itemLightLevels });
         }
