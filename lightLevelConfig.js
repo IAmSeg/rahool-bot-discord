@@ -12,7 +12,7 @@ import utilities from './utilities';
 
 
 const lightLevelConfig = {
-  maxLight: 310,
+  maxLight: 400,
   
   // config for current destiny calculation of light levels
   kineticMult: .143,
