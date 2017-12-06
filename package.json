@@ -4,13 +4,13 @@
   "author": "Will Johnson",
   "description": "Discord bot for Rahool the Cryptarch",
   "dependencies": {
-    "discord.io": "^2.5.2",
-    "firebase": "^4.3.0",
+    "firebase": "^4.7.0",
     "import-export": "^1.0.1",
     "winston": "^2.3.1"
   },
   "devDependencies": {
-    "moment": "^2.19.1",
+    "discord.io": "github:woor/discord.io#gateway_v6",
+    "moment": "^2.19.3",
     "request": "^2.83.0"
   }
 }
