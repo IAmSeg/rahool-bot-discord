@@ -998,7 +998,7 @@ export default class Api {
             // tag our specific vendor engrams role
             let message = `${vendorEngramConfig.roleId} `;
             vendors.forEach(vendor => {
-              message += `**${vendorEngramConfig.vendors[vendor.vendor]}** is currently dropping 300 Power Level gear.\n`;
+              message += `**${vendorEngramConfig.vendors[vendor.vendor]}** is currently dropping max Power Level gear.\n`;
             });
 
             // determine when this will likely expire (at the nearest half hour)
