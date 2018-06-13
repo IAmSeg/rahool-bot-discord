@@ -5,12 +5,12 @@ export default {
     {
       name: 'Cabal',
       structure: ['War Beast', 'Psion', 'Legionaire', 'Phalanx', 'Incendior', 'Gladiator', 'Centurion', 'Colossus'],
-      locations: ['Earth', 'IO', 'Nessus', 'The Almighty']
+      locations: ['Earth', 'IO', 'Nessus', 'The Almighty, Mars, Mercury']
     },
     {
       name: 'Hive',
       structure: ['Thrall', 'Cursed Thrall', 'Acolyte', 'Wizard', 'Knight', 'Shrieker', 'Ogre', 'Abyssal Champion'],
-      locations: ['Titan']
+      locations: ['Titan, Mars']
     },
     {
       name: 'Fallen',
@@ -19,7 +19,7 @@ export default {
     },
     {
       name: 'Vex',
-      locations: ['Nessus'],
+      locations: ['Nessus, Mercury'],
       structure: ['Harpy', 'Goblin', 'Hobgoblin', 'Fanatic', 'Minotaur', 'Hydra', 'Cyclops', 'Gorgon']
     },
   ],
