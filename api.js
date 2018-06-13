@@ -1611,7 +1611,7 @@ export default class Api {
         }
         catch (e) { 
           this.error(`I'm sorry. Something went wrong with the !loan command. Hold off until someone can fix it.`);
-          logger.error(`Error in loan for user: ${userId} to ${laonTo} for amount ${amount}: ${e}`); 
+          logger.error(`Error in loan for user: ${userId} to ${loanTo} for amount ${amount}: ${e}`); 
         }
       });
     }
@@ -1662,7 +1662,7 @@ export default class Api {
           }
         }
         catch (e) { 
-          logger.error(`Error in give loan to for user: ${loaner} to ${laonTo} for amount ${amount}: ${e}`); 
+          logger.error(`Error in give loan to for user: ${loaner} to ${loanTo} for amount ${amount}: ${e}`); 
         }
       });
 

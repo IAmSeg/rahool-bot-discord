@@ -76,6 +76,16 @@ export default {
       ],
       successMessage: 'you quell the corruption of SIVA and defeat those who have been augmented with its abilities.',
       defeatMessage: 'You are consumed by SIVA, lost to the corruption of this all powerful organism.'
+    },
+    { 
+      name: 'The Leviathan',
+      bosses: [
+        'Emperor Calus',
+        'Argos, Planetary Core',
+        'Val Ca\'uor'
+      ],
+      successMessage: 'You have please Emperor Calus once again.',
+      defeatMessage: 'You have failed Emperor Calus and will be punished accordingly.'
     }
   ],
 
@@ -123,20 +133,20 @@ export default {
       c2: 5.8194
     },
     {
-      min: 1.7,
-      max: 2.3,
+      min: 1.5,
+      max: 2,
       c1: .153846,
       c2: 3.84615
     },
     {
       min: 2,
-      max: 7.5,
+      max: 6.5,
       c1: .0936455,
       c2: 1.90635
     },
     {
-      min: 6.5,
-      max: 10,
+      min: 5.5,
+      max: 8,
       c1: .0468227,
       c2: .653177
     }
