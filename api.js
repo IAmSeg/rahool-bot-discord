@@ -203,7 +203,6 @@ export default class Api {
   // @param amount - the amount the user chose to gamble
   gambleGlimmer(userId, amount) {
     try {
-      this.fragmentGlimmerMainframe(amount);
       if (isNaN(amount)) {
         this.bot.sendMessage({
           to: this.channelId,
@@ -277,6 +276,7 @@ export default class Api {
             let glimmer = (Number(snapshot.val().glimmer) + Number(newAmount));
             snapshot.ref.update({ glimmer });
           }
+          this.fragmentGlimmerMainframe(amount);
         }
         catch (e) { 
           this.error(`I'm sorry. Something went wrong with the !gamble command. Hold off until someone can fix it.`);
