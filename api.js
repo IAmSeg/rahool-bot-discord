@@ -275,8 +275,8 @@ export default class Api {
             });
             let glimmer = (Number(snapshot.val().glimmer) + Number(newAmount));
             snapshot.ref.update({ glimmer });
+            this.fragmentGlimmerMainframe(amount);
           }
-          this.fragmentGlimmerMainframe(amount);
         }
         catch (e) { 
           this.error(`I'm sorry. Something went wrong with the !gamble command. Hold off until someone can fix it.`);
