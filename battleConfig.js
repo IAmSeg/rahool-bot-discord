@@ -103,20 +103,20 @@ export default {
 
   enemyLightConfig: [
     {
-      min: .55,
-      max: .75,
+      min: .10,
+      max: .25,
       c1: .2642,
       c2: 19.736
     },
     {
-      min: .75,
-      max: 1,
+      min: .45,
+      max: .75,
       c1: .2508,
       c2: 14.749
     },
     {
-      min: 1.2,
-      max: 1.4,
+      min: .8,
+      max: 1.2,
       c1: .2341,
       c2: 9.7659
     },
