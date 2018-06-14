@@ -92,8 +92,8 @@ export default {
   raidLightConfig: {
     min: 10,
     max: 30,
-    c1: .0379176,
-    c2: -2.5444,
+    c1: .0579176,
+    c2: -1.5444,
   },
 
   raidGlimmerConfig: {
