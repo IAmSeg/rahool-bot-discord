@@ -221,42 +221,6 @@ export default class Api {
         return;
       }
 
-      const roll = utilities.randomNumberBetween(1, 100);
-      let doubleLossChance = 7;
-      let lossChance = 36;
-      let breakEvenChance = 23;
-      let tripleChance = 5;
-      let doubleChance = 12;
-      let winChance = 17;
-
-      let newAmount = amount;
-      let message = ``;
-      if (roll <= 7) {
-        newAmount = 0 - amount - amount;
-        this.addAmountToBank(Math.abs(newAmount));
-        message = `rolled a ${roll} (${doubleLossChance}% chance). You have a problem and lost twice your gamble, ${amount * 2} glimmer.`
-      }
-      else if (roll > 7 && roll <= 43) {
-        newAmount = 0 - amount;
-        this.addAmountToBank(Math.abs(newAmount));
-        message = `rolled a ${roll} (${lossChance}% chance). You lost your gamble and lost ${amount} glimmer..`
-      }
-      else if (roll > 43 && roll <= 66) {
-        newAmount = 0;
-        message = `rolled a ${roll} (${breakEvenChance}% chance). You broke even and kept your ${amount} glimmer.`
-      }
-      else if (roll > 66 && roll <= 83) {
-        newAmount = amount;
-        message = `rolled a ${roll} (${winChance}% chance). You won your gamble and won ${newAmount} glimmer!`
-      }
-      else if (roll > 83 && roll <= 95) {
-        newAmount = amount * 2;
-        message = `rolled a ${roll} (${doubleChance}% chance). You doubled your gamble and won ${newAmount} glimmer!`
-      }
-      else {
-        newAmount = amount * 3;
-        message = `rolled a ${roll} (${tripleChance}% chance). You tripled your gamble and won ${newAmount} glimmer!`
-      }
 
       const user = this.database.ref(`users/${userId}`);
       user.once('value', snapshot => {
@@ -269,13 +233,53 @@ export default class Api {
               });
               return;
             }
-            this.bot.sendMessage({
-              to: this.channelId,
-              message: `<@${userId}> ${message}`
-            });
-            let glimmer = (Number(snapshot.val().glimmer) + Number(newAmount));
-            snapshot.ref.update({ glimmer });
-            this.fragmentGlimmerMainframe(amount);
+            else {
+              const roll = utilities.randomNumberBetween(1, 100);
+              let doubleLossChance = 7;
+              let lossChance = 36;
+              let breakEvenChance = 23;
+              let tripleChance = 5;
+              let doubleChance = 12;
+              let winChance = 17;
+
+              let newAmount = amount;
+              let message = ``;
+              if (roll <= 7) {
+                newAmount = 0 - amount - amount;
+                this.addAmountToBank(Math.abs(newAmount));
+                message = `rolled a ${roll} (${doubleLossChance}% chance). You have a problem and lost twice your gamble, ${amount * 2} glimmer.`
+              }
+              else if (roll > 7 && roll <= 43) {
+                newAmount = 0 - amount;
+                this.addAmountToBank(Math.abs(newAmount));
+                message = `rolled a ${roll} (${lossChance}% chance). You lost your gamble and lost ${amount} glimmer..`
+              }
+              else if (roll > 43 && roll <= 66) {
+                newAmount = 0;
+                message = `rolled a ${roll} (${breakEvenChance}% chance). You broke even and kept your ${amount} glimmer.`
+              }
+              else if (roll > 66 && roll <= 83) {
+                newAmount = amount;
+                message = `rolled a ${roll} (${winChance}% chance). You won your gamble and won ${newAmount} glimmer!`
+              }
+              else if (roll > 83 && roll <= 95) {
+                newAmount = amount * 2;
+                message = `rolled a ${roll} (${doubleChance}% chance). You doubled your gamble and won ${newAmount} glimmer!`
+              }
+              else {
+                newAmount = amount * 3;
+                message = `rolled a ${roll} (${tripleChance}% chance). You tripled your gamble and won ${newAmount} glimmer!`
+              }
+
+              this.bot.sendMessage({
+                to: this.channelId,
+                message: `<@${userId}> ${message}`
+              });
+
+              let glimmer = (Number(snapshot.val().glimmer) + Number(newAmount));
+              snapshot.ref.update({ glimmer });
+              this.fragmentGlimmerMainframe(amount);
+            }
           }
         }
         catch (e) { 
