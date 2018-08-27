@@ -34,10 +34,10 @@ export default class Api {
   }
 
   // @summary - lets the user know that an error occurred
-  error(message = `I'm sorry, something went wrong. Hang off on that command until someone can fix it.`) {
+  error(message = `I'm sorry, something went wrong. Hang off on that command until someone can fix it.`, channelId) {
     if (!message)
     this.bot.sendMessage({
-      to: this.channelId,
+      to: channelId,
       message
     });
   }
@@ -691,7 +691,7 @@ export default class Api {
           });
         }
         catch (e) { 
-          this.error(`I'm sorry. Something went wrong with the !lightrank command. Hold off until someone can fix it.`);
+          this.error(`I'm sorry. Something went wrong with the !lightrank command. Hold off until someone can fix it.`, this.channelId);
           logger.error(`Error getting light rank: ${e}`); 
         }
       });
