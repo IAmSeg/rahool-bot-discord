@@ -12,7 +12,7 @@ import utilities from './utilities';
 
 
 const lightLevelConfig = {
-  maxLight: 430,
+  maxLight: 400,
   
   // config for current destiny calculation of light levels
   kineticMult: .143,
@@ -71,7 +71,7 @@ const lightLevelConfig = {
     },
     { name:'Exotic',
       min: .9333,
-      max: 1.01667,
+      max: 1,
       color: 'gold',
       specialChance: 20,
       level: 4,
