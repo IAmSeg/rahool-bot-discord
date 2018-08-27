@@ -42,6 +42,55 @@ export default class Api {
     });
   }
 
+  // @summary - resets every user to 0 light and 1000 glimmmer
+  resetAllUsersLight() {
+    try {
+      const users = this.database.ref('users/');
+      users.once('value', snapshot => {
+        try {
+          const snapVal = snapshot.val();
+          const userList = [];
+          let message = `Light ranks:\n`;
+          for (let user in snapVal) {
+            let userRef = this.database.ref(`users/${snapVal[user].id}`);
+            userRef.update({
+              glimmer: 1000,
+              itemLightLevels: {
+                helmetLight: 0,
+                helmetName: 'unknown',
+                gauntletsLight: 0,
+                gauntletsName: 'unknown',
+                chestLight: 0,
+                chestName: 'unknown',
+                legsLight: 0,
+                legsName: 'unknown',
+                classLight: 0,
+                className: 'unknown',
+                kineticLight: 0,
+                kineticName: 'unknown',
+                energyLight: 0,
+                energyName: 'unknown',
+                powerLight: 0,
+                powerName: 'unknown',
+                ghost: 'unknown',
+                ship: 'unknown',
+                sparrow: 'unknown'
+              },
+              oweTo: false,
+              loans: false
+            })
+          }
+        }
+        catch (e) {
+          logger.error(`Error in resetAllUsersLight in snapshot: ${e}`);
+        }
+      });
+    }
+    catch (e) {
+      logger.error(`Error in resetAllUsersLight: ${e}`);
+    }
+  }
+
   // @summary - sets a timer for a delayed message
   // @message - message to send
   // @time - timer to wait before sending message
