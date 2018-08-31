@@ -502,15 +502,15 @@ bot.on('message', function (user, userId, channelId, message, evt) {
 });
 
 // set interval to check for 300 level vendor engrams
-setInterval(() => {
-  try {
-    let vendorApi = new Api(bot, vendorEngramsConfig.channelId)
-    vendorApi.get300Vendors();
-  }
-  catch (e) {
-    logger.error(`Error getting vendor engrams: ${e}.`);
-  }
-}, 480000);
+// setInterval(() => {
+//   try {
+//     let vendorApi = new Api(bot, vendorEngramsConfig.channelId)
+//     vendorApi.get300Vendors();
+//   }
+//   catch (e) {
+//     logger.error(`Error getting vendor engrams: ${e}.`);
+//   }
+// }, 480000);
 
 
 // disconnect
