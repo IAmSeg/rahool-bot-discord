@@ -42,32 +42,32 @@ const lightLevelConfig = {
       max: .3333,
       color: 'white',
       level: 0,
-      minInc: 5,
-      maxInc: 26
+      minInc: 15,
+      maxInc: 56
     },
     { name: 'Uncommon',
       min: .2667,
       max: .6,
       color: 'green',
       level: 1,
-      minInc: 5,
-      maxInc: 12
+      minInc: 25,
+      maxInc: 40
     },
     { name: 'Rare',
       min: .5333,
       max: .8,
       color: 'blue',
       level: 2,
-      minInc: 2,
-      maxInc: 8
+      minInc: 5,
+      maxInc: 18
     },
     { name: 'Legendary',
       min: .7333,
       max: .9667,
       color: 'purple',
       level: 3,
-      minInc: 0,
-      maxInc: 5
+      minInc: 3,
+      maxInc: 8
     },
     { name:'Exotic',
       min: .9333,
