@@ -84,8 +84,18 @@ export default {
         'Argos, Planetary Core',
         'Val Ca\'uor'
       ],
-      successMessage: 'You have please Emperor Calus once again.',
+      successMessage: 'You have pleased Emperor Calus once again.',
       defeatMessage: 'You have failed Emperor Calus and will be punished accordingly.'
+    },
+    { 
+      name: 'The Dreaming City',
+      bosses: [
+        'Kalli',
+        'Shuro Chi',
+        'Riven of A Thousand Voices'
+      ],
+      successMessage: 'Your wish of victory and riches has been granted.',
+      defeatMessage: 'You have been defeated and are doomed to suffer your death over and over for eternity.'
     }
   ],
 
