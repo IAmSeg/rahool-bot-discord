@@ -19,9 +19,19 @@ export default {
     },
     {
       name: 'Vex',
-      locations: ['Nessus, Mercury'],
+      locations: ['Nessus', 'Mercury'],
       structure: ['Harpy', 'Goblin', 'Hobgoblin', 'Fanatic', 'Minotaur', 'Hydra', 'Cyclops', 'Gorgon']
     },
+    {
+      name: 'Scorn',
+      locations: ['Tangled Shore', 'Dreaming City'],
+      structure: ['Screeb', 'Stalker', 'Ravager', 'Wraith', 'Raider', 'Abomination', 'Chieftain']
+    },
+    {
+      name: 'Taken',
+      locations: ['IO', 'Dreaming City'],
+      structure: ['Vandal', 'Thrall', 'Acolyte', 'Captain', 'Wizard', 'Knight', 'Ogre', 'Hydra', 'Centurion']
+    }
   ],
 
   raidBosses: [
@@ -96,12 +106,20 @@ export default {
       ],
       successMessage: 'Your wish of victory and riches has been granted.',
       defeatMessage: 'You have been defeated and are doomed to suffer your death over and over for eternity.'
+    },
+    { 
+      name: 'The Leviathan',
+      bosses: [
+        'Gahlran',
+      ],
+      successMessage: 'The Emporer is pleased with your performance and grants you riches of opulence. ',
+      defeatMessage: 'You have disappointed the Emperor.'
     }
   ],
 
   raidLightConfig: {
     min: 10,
-    max: 30,
+    max: 20,
     c1: .0579176,
     c2: -1.5444,
   },

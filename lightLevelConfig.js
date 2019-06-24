@@ -12,7 +12,7 @@ import utilities from './utilities';
 
 
 const lightLevelConfig = {
-  maxLight: 400,
+  maxLight: 500,
   
   // config for current destiny calculation of light levels
   kineticMult: .143,
@@ -43,7 +43,7 @@ const lightLevelConfig = {
       color: 'white',
       level: 0,
       minInc: 15,
-      maxInc: 56
+      maxInc: 100
     },
     { name: 'Uncommon',
       min: .2667,
@@ -51,7 +51,7 @@ const lightLevelConfig = {
       color: 'green',
       level: 1,
       minInc: 25,
-      maxInc: 40
+      maxInc: 60
     },
     { name: 'Rare',
       min: .5333,
@@ -59,7 +59,7 @@ const lightLevelConfig = {
       color: 'blue',
       level: 2,
       minInc: 5,
-      maxInc: 18
+      maxInc: 48
     },
     { name: 'Legendary',
       min: .7333,
@@ -67,7 +67,7 @@ const lightLevelConfig = {
       color: 'purple',
       level: 3,
       minInc: 3,
-      maxInc: 8
+      maxInc: 15 
     },
     { name:'Exotic',
       min: .9333,
@@ -76,7 +76,7 @@ const lightLevelConfig = {
       specialChance: 20,
       level: 4,
       minInc: 0,
-      maxInc: 4
+      maxInc: 7
     }
   ],
 
