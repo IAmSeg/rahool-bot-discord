@@ -761,7 +761,7 @@ export default class Api {
               return;
             }
 
-            if (utilities.minutesSince(snapshot.val().engramCooldown) < .5) {
+            if (utilities.minutesSince(snapshot.val().engramCooldown) < .25) {
               this.bot.sendMessage({
                 to: this.channelId,
                 message: `<@${userId}>, Rahool can only decrypt engrams so fast.`
@@ -862,34 +862,32 @@ export default class Api {
                 itemName.indexOf('auto rifle') !== -1 ||
                 itemName.indexOf('scout rifle') !== -1 ||
                 itemName.indexOf('pulse rifle') !== -1 ||
-                itemName.indexOf('trace rifle') !== -1 ||
                 itemName.indexOf('submachine') !== -1 ||
                 itemName.indexOf('combat bow') !== -1 ||
                 itemName.indexOf('sidearm') !== -1) {
-                  if (engramLightLevel > Math.min(kineticLight, energyLight)) {
-                     let weaponToSet = kineticLight < energyLight ? 'kinetic' : 'energy';
-                     if (weaponToSet == 'kinetic') {
-                       kineticLight = engramLightLevel;
-                       kineticName = selectedItem.name;
-                     }
-                     else {
-                       energyLight = engramLightLevel;
-                       energyName = selectedItem.name;
-                     }
+                  if (engramLightLevel > kineticLight) {
+                    kineticLight = engramLightLevel;
+                    kineticName = selectedItem.name;
+                  }
+            }
+            if (itemName.indexOf('sniper rifle') !== -1 ||
+                itemName.indexOf('fusion rifle') !== -1 ||
+                itemName.indexOf('trace rifle') !== -1 ||
+                itemName.indexOf('shotgun') !== -1) {
+                  if (engramLightLevel > energyLight) {
+                    energyLight = engramLightLevel;
+                    energyName = selectedItem.name;
                   }
             }
             // if we got a power weapon
-            if (itemName.indexOf('sniper rifle') !== -1 ||
-                itemName.indexOf('fusion rifle') !== -1 ||
+            if (itemName.indexOf('machine gun') !== -1 ||
                 itemName.indexOf('rocket launcher') !== -1 ||
-                itemName.indexOf('grenade launcher') !== -1 ||
-                itemName.indexOf('grenade launcher') !== -1 ||
-                itemName.indexOf('shotgun') !== -1) {
+                itemName.indexOf('sword') !== -1 ||
+                itemName.indexOf('grenade launcher') !== -1) {
                   if (engramLightLevel > powerLight) {
                     powerLight = engramLightLevel;
                     powerName = selectedItem.name;
                   }
-
             }
             // if we got a helmet
             if (itemName.indexOf('helmet') !== -1) {
