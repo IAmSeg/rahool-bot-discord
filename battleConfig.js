@@ -25,12 +25,12 @@ export default {
     {
       name: 'Scorn',
       locations: ['Tangled Shore', 'Dreaming City'],
-      structure: ['Screeb', 'Stalker', 'Ravager', 'Wraith', 'Raider', 'Abomination', 'Chieftain']
+      structure: ['Screeb', 'Stalker', 'Ravager', 'Wraith', 'Raider', 'Abomination', 'Chieftain', 'Baron']
     },
     {
       name: 'Taken',
       locations: ['IO', 'Dreaming City'],
-      structure: ['Vandal', 'Thrall', 'Acolyte', 'Captain', 'Wizard', 'Knight', 'Ogre', 'Hydra', 'Centurion']
+      structure: ['Thrall', 'Acolyte', 'Captain', 'Wizard', 'Knight', 'Ogre', 'Hydra', 'Centurion']
     }
   ],
 
