@@ -384,7 +384,7 @@ export default class Api {
   // @amount - amount being transacted in the economy
   fragmentGlimmerMainframe(amount) {
     try {
-      const oneGlimmerPercentage = .0000001;
+      const oneGlimmerPercentage = .00000001;
       let fragmentationAmount = Math.abs(amount) * oneGlimmerPercentage * 100;
       const fragRef = this.database.ref(`glimmerMainframe`);
       fragRef.once('value', s => {
@@ -589,13 +589,13 @@ export default class Api {
           }
 
           let userGlimmer = snapshot.val().glimmer; 
-          if (userGlimmer < -100) {
-            this.bot.sendMessage({
-              to: this.channelId,
-              message: `Sorry <@${userId}>, you don't have enough glimmer to attempt a bank robbery.`
-            });
-            return;
-          }
+          // if (userGlimmer < -100) {
+          //   this.bot.sendMessage({
+          //     to: this.channelId,
+          //     message: `Sorry <@${userId}>, you don't have enough glimmer to attempt a bank robbery.`
+          //   });
+          //   return;
+          // }
 
           // bank cooldown
           userRef.update({ bankCooldown: moment().unix() });
@@ -623,8 +623,8 @@ export default class Api {
             });
           }
           else {
-            // fine of 20%
-            let fineAmount = Math.abs(Math.floor(snapshot.val().glimmer * 0.2));
+            // fine of up to 20%
+            let fineAmount = Math.abs(Math.floor(snapshot.val().glimmer * (utilities.randomNumberBetween(0, 20) / 100)));
             // fine them at least 5, 20 if they don't even have that much glimmer
             fineAmount = fineAmount < 5 ? 20 : fineAmount;
             this.addAmountToBank(Math.abs(fineAmount));
@@ -1045,9 +1045,9 @@ export default class Api {
             chestName,
             legsName,
             className,
-            ship: snapshot.val().ship,
-            ghost: snapshot.val().ghost,
-            sparrow: snapshot.val().sparrow
+            ship: snapshot.val().itemLightLevels.ship,
+            ghost: snapshot.val().itemLightLevels.ghost,
+            sparrow: snapshot.val().itemLightLevels.sparrow
           };
           snapshot.ref.update({ itemLightLevels });
         }
@@ -1393,9 +1393,9 @@ export default class Api {
                 time: moment().unix()
               }, () => {
                 let message = `<@${userId}> you have initiated the raid protocol. Your raid ID is **${raidId}**.\n`
-                message += `Guardians have 60 seconds to join your raid.`;
+                message += `Guardians have ${utilities.raidTimerInMinutes} minutes to join your raid.`;
                 message += `Type **!joinraid ${raidId}** to join.\n`;
-                message += `In 60 seconds, you may type **!startraid ${raidId}** to begin the raid.`;
+                message += `In ${utilities.raidTimerInMinutes} minutes, you may type **!startraid ${raidId}** to begin the raid.`;
 
                 this.bot.sendMessage({
                   to: this.channelId,
@@ -1431,7 +1431,7 @@ export default class Api {
         try {
           if (s.val()) {
             // if the raid join timer has expired
-            if (utilities.minutesSince(s.val().time) > 1) {
+            if (utilities.minutesSince(s.val().time) > utilities.raidTimerInMinutes) {
               this.bot.sendMessage({
                 to: this.channelId,
                 message: `<@${userId}> the join period for that raid has expired.`
@@ -1552,7 +1552,7 @@ export default class Api {
             let roll = utilities.randomNumberBetweenTo2(0, 100);
             let won = false;
             let glimmerShare = Math.floor(glimmerBounty / s.val().users.length);
-            let lightReduction = Math.floor(10 * (1 + (chanceToWin / 100)));
+            let lightReduction = Math.floor(3 * (1 + (chanceToWin / 100)));
 
             // we won
             if (roll <= chanceToWin) {
@@ -1567,7 +1567,7 @@ export default class Api {
               this.delayMessage(`*Guardian down...*`, 28000);
               let defeatMessage = selectedRaidObj.defeatMessage;
               this.delayMessage(`${userList}\nAfter a tough battle, you are defeated by **${raidBoss}**. ${defeatMessage}.`, 31000);
-              // this.delayMessage(`Your light has been reduced by **${lightReduction}** by your enemies.`, 32000);
+              this.delayMessage(`Your light has been reduced by **${lightReduction}** by your enemies.`, 32000);
             } 
 
             // update the battle logs
@@ -1578,7 +1578,7 @@ export default class Api {
               }
               else {
                 this.updateBattleLog(user.id, 9, false, 0);
-                // this.removeLightFromUser(user.id, lightReduction);
+                this.removeLightFromUser(user.id, lightReduction);
               }
             });
 
@@ -1997,7 +1997,7 @@ export default class Api {
       userRef.once('value', userSnapshot => {
         try {
           if (userSnapshot.val()) {
-            var roll = utilities.randomNumberBetween(1, 10);
+            var roll = utilities.randomNumberBetween(1, 100);
             const stealFromRef = this.database.ref(`users/${stealFromId}`);
             stealFromRef.once('value', stealFromSnapshot => {
               try {
@@ -2010,26 +2010,49 @@ export default class Api {
                 }
                 else 
                 {
-                  // 30% chance of stealing
-                  if (roll <= 3)
+                  // stealer's level
+                  const stealerLevel = utilities.determineLevel(userSnapshot.val().messageCount);
+                  const stealFromLevel = utilities.determineLevel(stealFromSnapshot.val().messageCount);
+                  const levelRatio = (stealFromLevel > 0 ? (stealerLevel / stealFromLevel) : 1);
+                  // 50% base chance
+                  const chanceOfSteal = levelRatio > 1 ? 50 : (levelRatio * 50).toFixed(2);
+                  if (roll <= chanceOfSteal)
                   {
                     var glimmerAmount = stealFromSnapshot.val().glimmer;
+                    // steal up to 50% of glimmer
                     var glimmerStolenCut = utilities.randomNumberBetween(1, 50);
                     var glimmerStolenAmount = Math.floor(glimmerAmount * (glimmerStolenCut / 100));
 
                     this.addGlimmerToUser(userId, glimmerStolenAmount);
                     this.addGlimmerToUser(stealFromId, 0 - glimmerStolenAmount);
 
+                    var message = `<@${userId}> at your current level of **${stealerLevel}** and <@${stealFromId}>'s current level of **${stealFromLevel}**, `;
+                    message += `you have a **${chanceOfSteal}%** chance of stealing. `;
+                    message += `<@${userId}> you ${method}'d <@${stealFromId}> and stole ${glimmerStolenAmount} from them.`;
+
                     this.bot.sendMessage({
                       to: this.channelId,
-                      message: `<@${userId}> you ${method}'d <@${stealFromId}> and stole ${glimmerStolenAmount} from them.`
+                      message 
                     });
                   }
                   else 
                   {
+                    var glimmerAmount = stealFromSnapshot.val().glimmer;
+                    // steal up to 20% of glimmer
+                    var glimmerStolenCut = utilities.randomNumberBetween(1, 20);
+                    var glimmerStolenAmount = Math.floor(glimmerAmount * (glimmerStolenCut / 100));
+
+                    this.addGlimmerToUser(stealFromId, glimmerStolenAmount);
+                    this.addGlimmerToUser(userId, 0 - glimmerStolenAmount);
+
+                    var message = `<@${userId}> at your current level of **${stealerLevel}** and <@${stealFromId}>'s current level of **${stealFromLevel}**, `;
+                    message += `you have a **${chanceOfSteal}%** chance of stealing. `;
+                    message += `<@${userId}> you tried to ${method} <@${stealFromId}>, but unfortunately they were too strong and stopped you.`
+                    message += `They reverse ${method}'d you and stole **${glimmerStolenAmount}** from you.`
+
                     this.bot.sendMessage({
                       to: this.channelId,
-                      message: `<@${userId}> you tried to ${method} <@${stealFromId}>, but unfortunately they were too strong and stopped you.`
+                      message 
                     });
                   }
                 }
