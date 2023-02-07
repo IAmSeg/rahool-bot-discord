@@ -66,17 +66,17 @@ const lightLevelConfig = {
       max: .9667,
       color: 'purple',
       level: 3,
-      minInc: 3,
+      minInc: 5,
       maxInc: 15 
     },
     { name:'Exotic',
       min: .9333,
       max: 1,
       color: 'gold',
-      specialChance: 20,
+      specialChance: 40,
       level: 4,
-      minInc: 0,
-      maxInc: 7
+      minInc: 3,
+      maxInc: 9
     }
   ],
 

@@ -152,7 +152,7 @@ export default class Api {
     user.once('value', snapshot => {
       try {
         if (snapshot.val())
-          user.update({ glimmer: snapshot.val().glimmer + amount });
+          user.update({ glimmer: Math.floor(snapshot.val().glimmer + amount) });
       }
       catch (e) { 
         logger.error(`Error adding glimmer to user: ${userId}: ${e}`); 
@@ -167,7 +167,7 @@ export default class Api {
     const user = this.database.ref(`users/${userId}`);
     user.once('value', snapshot => {
       try {
-        user.update({ glimmer: snapshot.val().glimmer - amount });
+        user.update({ glimmer: Math.floor(snapshot.val().glimmer - amount) });
       }
       catch (e) { 
         logger.error(`Error taking glimmer from user: ${userId}: ${e}`); 
@@ -186,7 +186,7 @@ export default class Api {
       user.once('value', snapshot => {
         try {
           if (snapshot.val())
-            snapshot.ref.update({ glimmer: snapshot.val().glimmer + 5, username });
+            snapshot.ref.update({ glimmer: Math.floor(snapshot.val().glimmer + 5), username });
           else
             this.writeData(userId, username);  
         }
@@ -197,6 +197,34 @@ export default class Api {
     }
     catch (e) {
       logger.error(`Error in updateGlimmer for ${userId}: ${e}.`);
+    }
+  }
+
+  // @summary add message count to user
+  // @param userId - calling user
+  // @username - human friendly username of the user
+  updateMessageCount(userId, username) {
+    try {
+      const user = this.database.ref(`users/${userId}`);
+      user.once('value', snapshot => {
+        try {
+          if (snapshot.val())
+          {
+            if (snapshot.val().messageCount != null && snapshot.val().messageCount != undefined)
+              snapshot.ref.update({ messageCount: snapshot.val().messageCount + 1, username });
+            else
+              snapshot.ref.update({ messageCount: 1, username });
+          }
+          else
+            this.writeData(userId, username);  
+        }
+        catch (e) {
+          logger.error(`Error in updateMessageCount for ${userId}: ${e}.`);
+        }
+      });
+    }
+    catch (e) {
+      logger.error(`Error in updateMessageCount for ${userId}: ${e}.`);
     }
   }
 
@@ -502,7 +530,7 @@ export default class Api {
       const ref = this.database.ref(`glimmerBank`);
       ref.once('value', snapshot => {
         try {
-          let newAmount = snapshot.val().amount + amount;
+          let newAmount = Math.floor(snapshot.val().amount + amount);
           newAmount = (newAmount > 0) ? newAmount : 0;
           snapshot.ref.update({ amount: newAmount });
         }
@@ -864,17 +892,16 @@ export default class Api {
                 itemName.indexOf('pulse rifle') !== -1 ||
                 itemName.indexOf('submachine') !== -1 ||
                 itemName.indexOf('combat bow') !== -1 ||
-                itemName.indexOf('sidearm') !== -1) {
+                itemName.indexOf('sidearm') !== -1 ||
+                itemName.indexOf('sniper rifle') !== -1 ||
+                itemName.indexOf('fusion rifle') !== -1 ||
+                itemName.indexOf('trace rifle') !== -1 ||
+                itemName.indexOf('shotgun') !== -1) {
                   if (engramLightLevel > kineticLight) {
                     kineticLight = engramLightLevel;
                     kineticName = selectedItem.name;
                   }
-            }
-            if (itemName.indexOf('sniper rifle') !== -1 ||
-                itemName.indexOf('fusion rifle') !== -1 ||
-                itemName.indexOf('trace rifle') !== -1 ||
-                itemName.indexOf('shotgun') !== -1) {
-                  if (engramLightLevel > energyLight) {
+                  else if (engramLightLevel > energyLight) {
                     energyLight = engramLightLevel;
                     energyName = selectedItem.name;
                   }
@@ -1540,7 +1567,7 @@ export default class Api {
               this.delayMessage(`*Guardian down...*`, 28000);
               let defeatMessage = selectedRaidObj.defeatMessage;
               this.delayMessage(`${userList}\nAfter a tough battle, you are defeated by **${raidBoss}**. ${defeatMessage}.`, 31000);
-              this.delayMessage(`Your light has been reduced by **${lightReduction}** by your enemies.`, 32000);
+              // this.delayMessage(`Your light has been reduced by **${lightReduction}** by your enemies.`, 32000);
             } 
 
             // update the battle logs
@@ -1551,7 +1578,7 @@ export default class Api {
               }
               else {
                 this.updateBattleLog(user.id, 9, false, 0);
-                this.removeLightFromUser(user.id, lightReduction);
+                // this.removeLightFromUser(user.id, lightReduction);
               }
             });
 
@@ -1958,6 +1985,98 @@ export default class Api {
     catch (e) {
       this.error(`I'm sorry. Something went wrong with the !repay command. Hold off until someone can fix it.`);
       logger.error(`Error in repay for ${userId} to ${repayToId} for amount: ${amount}.`);
+    }
+  }
+
+  // @summary steal glimmer from a user
+  // @param userId - user who is trying to steal
+  // @param stealFromId - user who you are stealing from
+  stealGlimmerFrom(userId, stealFromId, method) {
+    try {
+      const userRef = this.database.ref(`users/${userId}`);
+      userRef.once('value', userSnapshot => {
+        try {
+          if (userSnapshot.val()) {
+            var roll = utilities.randomNumberBetween(1, 10);
+            const stealFromRef = this.database.ref(`users/${stealFromId}`);
+            stealFromRef.once('value', stealFromSnapshot => {
+              try {
+                if (stealFromSnapshot.val().glimmer <= 0)
+                {
+                  this.bot.sendMessage({
+                    to: this.channelId,
+                    message: `<@${userId}> <@${stealFromId}> has no glimmer to steal. They are poor as fuck.`
+                  });
+                }
+                else 
+                {
+                  // 30% chance of stealing
+                  if (roll <= 3)
+                  {
+                    var glimmerAmount = stealFromSnapshot.val().glimmer;
+                    var glimmerStolenCut = utilities.randomNumberBetween(1, 50);
+                    var glimmerStolenAmount = Math.floor(glimmerAmount * (glimmerStolenCut / 100));
+
+                    this.addGlimmerToUser(userId, glimmerStolenAmount);
+                    this.addGlimmerToUser(stealFromId, 0 - glimmerStolenAmount);
+
+                    this.bot.sendMessage({
+                      to: this.channelId,
+                      message: `<@${userId}> you ${method}'d <@${stealFromId}> and stole ${glimmerStolenAmount} from them.`
+                    });
+                  }
+                  else 
+                  {
+                    this.bot.sendMessage({
+                      to: this.channelId,
+                      message: `<@${userId}> you tried to ${method} <@${stealFromId}>, but unfortunately they were too strong and stopped you.`
+                    });
+                  }
+                }
+              }
+              catch (e) { 
+                this.error(`I'm sorry. Something went wrong with the !steal command. Hold off until someone can fix it.`);
+                logger.error(`Error stealing glimmer from ${stealFromId} by ${userId}: ${e}`); 
+              }
+            });
+          }
+        }
+        catch (e) { 
+          logger.error(`Error stealing glimmer from ${stealFromId} by ${userId}: ${e}`); 
+          this.error(`I'm sorry. Something went wrong with the !steal command. Hold off until someone can fix it.`);
+        }
+      });
+    }
+    catch (e) {
+      this.error(`I'm sorry. Something went wrong with the !steal command. Hold off until someone can fix it.`);
+      logger.error(`Error stealing glimmer from ${stealFromId} by ${userId}: ${e}`); 
+    }
+  }
+
+  // @summary get the user's current level in the server based on message count
+  // @param userId - user who is trying to steal
+  getCurrentLevel(userId) {
+    try {
+      const userRef = this.database.ref(`users/${userId}`);
+      userRef.once('value', userSnapshot => {
+        try {
+          if (userSnapshot.val()) {
+            const level = utilities.determineLevel(userSnapshot.val().messageCount);
+            this.bot.sendMessage({
+              to: this.channelId,
+              message: `<@${userId}> your current level is **${level}**.`
+            });
+          }
+        }
+        catch (e) { 
+          this.error(`I'm sorry. Something went wrong with the !getCurrentRank command. Hold off until someone can fix it.`);
+          logger.error(`Error getting current rank for ${userId}: ${e}`); 
+        }
+      });
+    }
+    catch (e) { 
+      this.error(`I'm sorry. Something went wrong with the !getCurrentRank command. Hold off until someone can fix it.`);
+      logger.error(`Error getting current rank for ${userId}: ${e}`); 
     }
   }
 

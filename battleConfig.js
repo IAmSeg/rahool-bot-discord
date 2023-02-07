@@ -125,8 +125,8 @@ export default {
   },
 
   raidGlimmerConfig: {
-    min: 50000,
-    max: 200000
+    min: 200000,
+    max: 500000
   },
 
   enemyLightConfig: [
@@ -183,35 +183,35 @@ export default {
   enemyGlimmerConfig: [
     {
       min: 1,
-      max: 100,
+      max: 300,
     },
     {
       min: 100,
-      max: 200,
+      max: 500,
     },
     {
       min: 200,
-      max: 300
+      max: 600
     },
     {
-      min: 300,
-      max: 500
+      min: 400,
+      max: 800
     },
     {
-      min: 500,
-      max: 700
+      min: 800,
+      max: 1500
     },
     {
-      min: 700,
-      max: 900
+      min: 1000,
+      max: 2000
     },
     {
-      min: 900,
-      max: 2000 
+      min: 1500,
+      max: 3000 
     },
     {
-      min: 2500, 
-      max: 5000 
+      min: 5500, 
+      max: 8000 
     }
   ],
 

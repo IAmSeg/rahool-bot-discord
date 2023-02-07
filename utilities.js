@@ -27,6 +27,11 @@ const utilities = {
   // @summary gets the minutes since time
   minutesSince(time) {
     return Math.abs((moment().unix() - time) / 60).toFixed(2);
+  },
+  
+  // @summary determines a users level based on their messageCount in the server
+  determineLevel(messageCount) {
+    return Math.floor(messageCount / 10);
   }
 }
 

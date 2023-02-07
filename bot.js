@@ -38,10 +38,10 @@ bot.on('ready', function (evt) {
   logger.info('Logged in as: ');
   logger.info(bot.username + ' - (' + bot.id + ')');
 
-  setInterval(() => {
-    let rand = utilities.randomNumberBetween(0, randomGames.length - 1);
-    bot.setPresence({ status: 'online', game: { name: randomGames[rand] }});
-  }, 60000);
+  // setInterval(() => {
+  //   let rand = utilities.randomNumberBetween(0, randomGames.length - 1);
+  //   bot.setPresence({ status: 'online', game: { name: randomGames[rand] }});
+  // }, 60000);
 });
 
 
@@ -53,8 +53,11 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       return;
 
     // add 5 glimmer to user per message
-    if (message[0] !== '!' && message.length >= 10)
+    if (message[0] !== '!' && message.length >= 3)
+    {
       api.updateGlimmer(userId, user);
+      api.updateMessageCount(userId, user);
+    }
 
     // gamble
     if (message.split(' ')[0] === '!gamble') {
@@ -99,6 +102,15 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       let message =`The global glimmer bank is protected by a secret number that is randomized between 1 and 100 constantly. `;
       message += `You can attempt to rob the glimmer bank by guessing the secret number. If you guess it correctly, you will open the vault and escape with all the glimmer. `;
       message += `If you guess wrong and are caught by the glimmer police, you will be fined. Type **!robbank guess** to attempt.`;
+       bot.sendMessage({
+         to: channelId,
+         message
+      });
+    }
+
+    if (message === '!howtosteal') {
+      let message =`You can attempt to steal glimmer from someone using the format **!steal @stealFromPerson method-of-stealing**.`;
+      message += `There is a 30% chance of a successful steal and you will be given a random % of their glimmer up to 50%.`;
        bot.sendMessage({
          to: channelId,
          message
@@ -157,6 +169,9 @@ bot.on('message', function (user, userId, channelId, message, evt) {
 
     if (message === '!battlecooldown')
       api.getBattleCooldown(userId);
+
+    if (message === '!level') 
+      api.getCurrentLevel(userId);
 
     //loan
     if (message.split(' ')[0] === '!loan') {
@@ -413,6 +428,29 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       api.raidParty(userId, raidId);
     }
 
+    if (message.split(' ')[0] === '!steal') {
+      if (message.split(' ').length < 3) {
+        bot.sendMessage({
+          to: channelId,
+          message: `<@${userId}>, please specify who you want to steal from and how you're going to do it. **!steal @user method_of_stealing**`
+        });
+
+        return;
+      }
+
+      // extract the stealFrom id from the <@id> string
+      // sometimes there's a random ! at the beginning also
+      let [command, stealFrom, ...method] = message.split(' ');
+      let stealFromId = stealFrom.substring(2, stealFrom.length - 1);
+      if (stealFromId[0] == '!') 
+        stealFromId = stealFromId.substring(1, stealFromId.length - 1);
+
+      method = method.join(' ');
+
+      api.stealGlimmerFrom(userId, stealFromId, method);
+    }
+
+
     if (message === '!aboutfrag') {
       let message = `Glimmer is a programmable currency which is kept track of in the Glimmer Mainframe. With each glimmer transaction, the Mainframe hardware fragments, and the volatility of the glimmer economy rises. If the Mainframe reaches 100% fragmentation, it will crash, `;
       message += `destroying the glimmer economy and wiping all glimmer from the system. Larger transactions fragment the Mainframe faster. Type **!frag** to check the current fragmentation rate.`;
@@ -480,6 +518,7 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       newmessage += `**!loan AMOUNT @user** - Loan AMOUNT glimmer to a user.\n`;
       newmessage += `**!collect AMOUNT @user** - Collect a loan of AMOUNT glimmer from @user who you have loaned to.\n`;
       newmessage += `**!repay AMOUNT @user** - Repay a loan of AMOUNT glimmer to @user who has loaned glimmer to you.\n`;
+      newmessage += `**!steal @user METHOD** - Attempt to steal glimmer from @user by using METHOD.\n`;
       newmessage += `**!loans** - Check the amount of glimmer you have loaned out.\n`;
       newmessage += `**!debt** - Check how much glimmer you are in debt (how much you have been loaned).\n`;
       newmessage += `**!loansystem** - More information about how the loan/repay/collect system works.\n`;
@@ -516,5 +555,6 @@ bot.on('message', function (user, userId, channelId, message, evt) {
 // disconnect
 bot.on('disconnect', function(msg, code) {
   logger.info(`Bot disconnected from Discord with code ${code}, message: ${msg}.`)
+  logger.info('Trying to reconnect...');
   bot.connect();
 });
