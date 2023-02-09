@@ -298,7 +298,7 @@ export default class Api {
         return;
       }
 
-
+      amount = Math.floor(amount);
       const user = this.database.ref(`users/${userId}`);
       user.once('value', snapshot => {
         try {
@@ -319,7 +319,7 @@ export default class Api {
               let doubleChance = 12;
               let winChance = 17;
 
-              let newAmount = amount;
+              let newAmount = Math.floor(amount);
               let message = ``;
               if (roll <= 7) {
                 newAmount = 0 - amount - amount;
@@ -407,7 +407,7 @@ export default class Api {
   // @amount - amount being donated to defrag repairs
   defragGlimmerMainframe(userId, amount) {
     try {
-      const oneGlimmerPercentage = .0000001;
+      const oneGlimmerPercentage = .00000001;
       let fragmentationAmount = Math.abs(amount) * oneGlimmerPercentage * 100;
       const fragRef = this.database.ref(`glimmerMainframe`);
       fragRef.once('value', s => {
@@ -730,6 +730,48 @@ export default class Api {
     }
   }
 
+  // @summary gets a list of users and their levels and sorts them from highest to lowest
+  getLevelRank() {
+    try {
+      const users = this.database.ref('users/');
+      users.once('value', snapshot => {
+        try {
+          const snapVal = snapshot.val();
+          const userList = [];
+          let message = `Level ranks:\n`;
+          for (let user in snapVal) {
+            if (snapVal[user].messageCount > 0)
+              userList.push(snapVal[user]);
+          }
+
+          userList.sort((a, b) => b.messageCount - a.messageCount);
+
+          var index = 0;
+          userList.forEach((user) => {
+            let level = utilities.determineLevel(user.messageCount);
+            if (level > 0) {
+              message += `${index + 1}: ${user.username}, level: ${level}\n`; 
+              index++;
+            }
+          });
+
+          this.bot.sendMessage({
+            to: this.channelId,
+            message
+          });
+        }
+        catch (e) { 
+          this.error(`I'm sorry. Something went wrong with the !levelrank command. Hold off until someone can fix it.`, this.channelId);
+          logger.error(`Error getting level rank: ${e}`); 
+        }
+      });
+    }
+    catch (e) {
+      this.error(`I'm sorry. Something went wrong with the !levelrank command. Hold off until someone can fix it.`);
+      logger.error(`Error in getLevelRank: ${e}`);
+    }
+  }
+
   // @summary sometimes rahool is a dick and your engrams decrypt into nothing
   // @param userId - calling user
   rahoolIsADick(userId) {
@@ -909,7 +951,7 @@ export default class Api {
             // if we got a power weapon
             if (itemName.indexOf('machine gun') !== -1 ||
                 itemName.indexOf('rocket launcher') !== -1 ||
-                itemName.indexOf('sword') !== -1 ||
+                itemName.indexOf('sword ') !== -1 ||
                 itemName.indexOf('grenade launcher') !== -1) {
                   if (engramLightLevel > powerLight) {
                     powerLight = engramLightLevel;
@@ -1645,9 +1687,9 @@ export default class Api {
 
   // @summary loans glimmer from one user to another
   // @param loaner - calling user
-  // @param amount - the amount the user chose to loan
   // @param loanTo - the user to loan amount to
-  loan(loaner, amount, loanTo) {
+  // @param amount - the amount the user chose to loan
+  loan(loaner, loanTo, amount) {
     try {
       // make sure the user has that amount
       const userRef = this.database.ref(`users/${loaner}`);
@@ -1835,9 +1877,9 @@ export default class Api {
 
   // @summary adds a loan to a user
   // @param userId - user to collect from
-  // @param amount - amount to collect
   // @param collectFromId - person to collect from
-  collect(userId, amount, collectFromId) {
+  // @param amount - amount to collect
+  collect(userId, collectFromId, amount) {
     try {
       const collectRef = this.database.ref(`users/${collectFromId}`);
         collectRef.once('value', collectSnapshot => {
@@ -1906,9 +1948,9 @@ export default class Api {
 
   // @summary repay debt to a user
   // @param userId - user who is repaying debt
-  // @param amount - amount to repay
   // @param repayToId - user to repay to
-  repay(userId, amount, repayToId) {
+  // @param amount - amount to repay
+  repay(userId, repayToId, amount) {
     try {
       const userRef = this.database.ref(`users/${userId}`);
       userRef.once('value', userSnapshot => {
@@ -1997,6 +2039,19 @@ export default class Api {
       userRef.once('value', userSnapshot => {
         try {
           if (userSnapshot.val()) {
+
+            // on steal cooldown
+            if (utilities.minutesSince(userSnapshot.val().stealCooldown) < 1) {
+              this.bot.sendMessage({
+                to: this.channelId,
+                message: `<@${userId}>, you're thievin' too fast. Calm down.`
+              });       
+
+              return;
+            }
+
+            userRef.update({ stealCooldown: moment().unix() });
+
             var roll = utilities.randomNumberBetween(1, 100);
             const stealFromRef = this.database.ref(`users/${stealFromId}`);
             stealFromRef.once('value', stealFromSnapshot => {

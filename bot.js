@@ -73,7 +73,7 @@ bot.on('message', function (user, userId, channelId, message, evt) {
     if (message === '!light')
      api.getCurrentLight(userId);
 
-    if (message === '!buyengram') {
+    if (message === '!buyengram' || message === '!buy') {
       let roll = Math.floor(utilities.randomNumberBetween(1, 100));
       if (roll < 5)
         api.rahoolIsADick(userId);
@@ -83,6 +83,9 @@ bot.on('message', function (user, userId, channelId, message, evt) {
 
     if (message === '!lightrank')
       api.getLightRank();
+
+    if (message === '!levelrank')
+      api.getLevelRank();
 
     if (message === '!loadout')
       api.getLoadout(userId);
@@ -178,11 +181,11 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       if (message.split(' ').length < 3) {
         bot.sendMessage({
           to: channelId,
-          message: `<@${userId}> please specify an amount and someone to loan to. **!loan amount @user**.`
+          message: `<@${userId}> please specify an amount and someone to loan to. **!loan @user amount**.`
         })
       }
       else {
-        let amount = Number(message.split(' ')[1]);
+        let amount = Number(message.split(' ')[2]);
         if (amount < 1) {
           bot.sendMessage({
             to: channelId,
@@ -190,7 +193,7 @@ bot.on('message', function (user, userId, channelId, message, evt) {
           });
         }
         else {
-          let loanTo = message.split(' ')[2];
+          let loanTo = message.split(' ')[1];
 
           // extract the loanTo id from the <@id> string
           // sometimes there's a random ! at the beginning also
@@ -211,7 +214,7 @@ bot.on('message', function (user, userId, channelId, message, evt) {
             });
           }
           else 
-            api.loan(userId, amount, loanToId);
+            api.loan(userId, loanToId, amount);
         }
       }
     }
@@ -221,11 +224,11 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       if (message.split(' ').length < 3) {
         bot.sendMessage({
           to: channelId,
-          message: `<@${userId}> please specify an amount and someone to repay. **!repay amount @user**.`
+          message: `<@${userId}> please specify an amount and someone to repay. **!repay @user amount**.`
         })
       }
       else {
-        let amount = Number(message.split(' ')[1]);
+        let amount = Number(message.split(' ')[2]);
         if (amount < 1) {
           bot.sendMessage({
             to: channelId,
@@ -233,7 +236,7 @@ bot.on('message', function (user, userId, channelId, message, evt) {
           });
         }
         else {
-          let repayTo = message.split(' ')[2];
+          let repayTo = message.split(' ')[1];
 
           // extract the repayTo id from the <@id> string
           // sometimes there's a random ! at the beginning also
@@ -254,7 +257,7 @@ bot.on('message', function (user, userId, channelId, message, evt) {
             });
           }
           else 
-            api.repay(userId, amount, repayToId);
+            api.repay(userId, repayToId, amount);
         }
       }
     }
@@ -264,11 +267,11 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       if (message.split(' ').length < 3) {
         bot.sendMessage({
           to: channelId,
-          message: `<@${userId}> please specify an amount and someone to collect from. **!collect amount @user**.`
+          message: `<@${userId}> please specify an amount and someone to collect from. **!collect @user amount**.`
         })
       }
       else {
-        let amount = Number(message.split(' ')[1]);
+        let amount = Number(message.split(' ')[2]);
 
         if (amount < 1) {
           bot.sendMessage({
@@ -277,7 +280,7 @@ bot.on('message', function (user, userId, channelId, message, evt) {
           });
         }
         else {
-          let collectFrom = message.split(' ')[2];
+          let collectFrom = message.split(' ')[1];
 
           // extract the collectFrom id from the <@id> string
           // sometimes there's a random ! at the beginning also
@@ -298,7 +301,7 @@ bot.on('message', function (user, userId, channelId, message, evt) {
             });
           }
           else 
-            api.collect(userId, amount, collectFromId);
+            api.collect(userId, collectFromId, amount);
         }
       }
     }
@@ -450,6 +453,15 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       api.stealGlimmerFrom(userId, stealFromId, method);
     }
 
+    if (message === '!stealodds') {
+      let message = `The odds of successfully stealing someone is the ratio of your level to their level, with a max chance of 50%. Check your level with the **!level** command.`;
+      message += `If you successfully steal, you can steal up to 50% of someone's glimmer (at random). If get reverse stole on, they will steal up to 20% of your glimmer (at random).`;
+      bot.sendMessage({
+        to: channelId,
+        message
+      });
+    }
+
 
     if (message === '!aboutfrag') {
       let message = `Glimmer is a programmable currency which is kept track of in the Glimmer Mainframe. With each glimmer transaction, the Mainframe hardware fragments, and the volatility of the glimmer economy rises. If the Mainframe reaches 100% fragmentation, it will crash, `;
@@ -491,9 +503,10 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       let message = `Current available commands: \n`;
       message += `**!glimmer** - Check your current glimmer.\n`;
       message += `**!glimmereconomy** - More information about how the glimmer economy works.\n`;
-      message += `**!buyengram**- Buy an engram from Rahool for 100 glimmer.\n`;
+      message += `**!buyengram** or **!buy** - Buy an engram from Rahool for 100 glimmer.\n`;
       message += `**!light** - Check your current light level.\n`;
       message += `**!lightrank** - Check the light level of everyone in the server, ranked highest to lowest.\n`;
+      message += `**!levelrank** - Check the level of everyone in the server, ranked highest to lowest.\n`;
       message += `**!loadout** - Check your current loadout.\n`;
       message += `**!gamble AMOUNT** - Gamble AMOUNT of glimmer.\n`;
       message += `**!gamblehelp** - More information on how gambling wins or losses are determined.\n`;
@@ -515,9 +528,9 @@ bot.on('message', function (user, userId, channelId, message, evt) {
       newmessage += `**!joinraid RAID_ID** - Join a raid with id RAID_ID.\n`;
       newmessage += `**!startraid RAID_ID** - Start a raid with id RAID_ID.\n`;
       newmessage += `**!raidparty RAID_ID** - Check the guardian count/combined light for a raid with id RAID_ID.\n`;
-      newmessage += `**!loan AMOUNT @user** - Loan AMOUNT glimmer to a user.\n`;
-      newmessage += `**!collect AMOUNT @user** - Collect a loan of AMOUNT glimmer from @user who you have loaned to.\n`;
-      newmessage += `**!repay AMOUNT @user** - Repay a loan of AMOUNT glimmer to @user who has loaned glimmer to you.\n`;
+      newmessage += `**!loan @user AMOUNT** - Loan AMOUNT glimmer to a user.\n`;
+      newmessage += `**!collect @user AMOUNT** - Collect a loan of AMOUNT glimmer from @user who you have loaned to.\n`;
+      newmessage += `**!repay @user AMOUNT** - Repay a loan of AMOUNT glimmer to @user who has loaned glimmer to you.\n`;
       newmessage += `**!steal @user METHOD** - Attempt to steal glimmer from @user by using METHOD.\n`;
       newmessage += `**!loans** - Check the amount of glimmer you have loaned out.\n`;
       newmessage += `**!debt** - Check how much glimmer you are in debt (how much you have been loaned).\n`;
